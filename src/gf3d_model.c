@@ -86,6 +86,7 @@ Model * gf3d_model_load(char * filename)
     model->mesh = gf3d_mesh_load(assetname);
 
     snprintf(assetname,GFCLINELEN,"images/%s.png",filename);
+	slog("assetname: %s", assetname);
     model->texture = gf3d_texture_load(assetname);
     
     return model;

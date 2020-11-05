@@ -107,7 +107,7 @@ void gf3d_vgraphics_init(
     gfc_matrix_identity(gf3d_vgraphics.ubo.proj);
     gfc_matrix_view(
         gf3d_vgraphics.ubo.view,
-        vector3d(2,40,2),
+        vector3d(0,60,2),
         vector3d(0,0,0),
         vector3d(0,0,1)
     );
@@ -116,7 +116,7 @@ void gf3d_vgraphics_init(
         45 * GFC_DEGTORAD,
         renderWidth/(float)renderHeight,
         0.1f,
-        100
+        500
     );
     
     gf3d_vgraphics.ubo.proj[1][1] *= -1;
@@ -143,7 +143,7 @@ void gf3d_vgraphics_init(
     gf3d_vgraphics.pipe = gf3d_pipeline_basic_model_create(device,"shaders/vert.spv","shaders/frag.spv",gf3d_vgraphics_get_view_extent(),1024);
     gf3d_model_manager_init(1024,gf3d_swapchain_get_swap_image_count(),device);
 
-    gf3d_command_system_init(8,device);
+	gf3d_command_system_init(8 * gf3d_swapchain_get_swap_image_count(), device);
 
     gf3d_vgraphics.graphicsCommandPool = gf3d_command_graphics_pool_setup(gf3d_swapchain_get_swap_image_count(),gf3d_vgraphics.pipe);
 
@@ -168,6 +168,7 @@ void gf3d_vgraphics_setup(
     Uint32 i;
     Uint32 enabledExtensionCount = 0;
     VkDeviceCreateInfo createInfo = {0};
+	const char *const * testList;
     
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
@@ -186,11 +187,13 @@ void gf3d_vgraphics_setup(
             flags |= SDL_WINDOW_FULLSCREEN;
         }
     }
+	slog_sync();
     gf3d_vgraphics.main_window = SDL_CreateWindow(windowName,
                              SDL_WINDOWPOS_UNDEFINED,
                              SDL_WINDOWPOS_UNDEFINED,
                              renderWidth, renderHeight,
                              flags);
+	slog_sync();
 
     if (!gf3d_vgraphics.main_window)
     {
@@ -200,8 +203,10 @@ void gf3d_vgraphics_setup(
         return;
     }
 
+	slog_sync();
     // instance extension configuration
     gf3d_extensions_instance_init();
+	slog_sync();
     
     // get the extensions that are needed for rendering to an SDL Window
     SDL_Vulkan_GetInstanceExtensions(gf3d_vgraphics.main_window, &(gf3d_vgraphics.sdl_extension_count), NULL);
@@ -223,6 +228,7 @@ void gf3d_vgraphics_setup(
         exit(0);
         return;
     }
+	slog_sync();
 
     // setup app info
     gf3d_vgraphics.vk_app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -231,7 +237,7 @@ void gf3d_vgraphics_setup(
     gf3d_vgraphics.vk_app_info.applicationVersion = 0;
     gf3d_vgraphics.vk_app_info.pEngineName = windowName;
     gf3d_vgraphics.vk_app_info.engineVersion = 0;
-    gf3d_vgraphics.vk_app_info.apiVersion = VK_API_VERSION_1_0;
+    gf3d_vgraphics.vk_app_info.apiVersion = VK_API_VERSION_1_2; //change to 1.2
     
     gf3d_vgraphics.vk_instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     gf3d_vgraphics.vk_instance_info.pNext = NULL;
@@ -241,8 +247,13 @@ void gf3d_vgraphics_setup(
     {
         gf3d_vgraphics.enableValidationLayers = true;
         gf3d_validation_init();
-        gf3d_vgraphics.vk_instance_info.enabledLayerCount = gf3d_validation_get_validation_layer_count();
-        gf3d_vgraphics.vk_instance_info.ppEnabledLayerNames = gf3d_validation_get_validation_layer_names();
+		slog("Validation layer count %i", gf3d_validation_get_validation_layer_count());
+        //gf3d_vgraphics.vk_instance_info.enabledLayerCount = gf3d_validation_get_validation_layer_count();
+		gf3d_vgraphics.vk_instance_info.enabledLayerCount = 6; //Error happens at LayerCount = 7
+        //gf3d_vgraphics.vk_instance_info.ppEnabledLayerNames = gf3d_validation_get_validation_layer_names();
+		testList = gf3d_validation_get_validation_layer_names();
+		gf3d_vgraphics.vk_instance_info.ppEnabledLayerNames = &testList[0];
+		//gf3d_vgraphics.vk_instance_info.ppEnabledLayerNames = &testList[7];
         gf3d_extensions_enable(ET_Instance,"VK_EXT_debug_utils");
     }
     else
@@ -255,6 +266,8 @@ void gf3d_vgraphics_setup(
     gf3d_vgraphics.vk_instance_info.ppEnabledExtensionNames = gf3d_extensions_get_instance_enabled_names(&enabledExtensionCount);
     gf3d_vgraphics.vk_instance_info.enabledExtensionCount = enabledExtensionCount;
 
+	slog_sync();
+
     // create instance
     vkCreateInstance(&gf3d_vgraphics.vk_instance_info, NULL, &gf3d_vgraphics.vk_instance);
 
@@ -265,6 +278,7 @@ void gf3d_vgraphics_setup(
         return;
     }
     
+	slog_sync();
     if (enableValidation)
     {
         gf3d_vgraphics_setup_debug();
@@ -294,6 +308,8 @@ void gf3d_vgraphics_setup(
     // create a surface for the window
     SDL_Vulkan_CreateSurface(gf3d_vgraphics.main_window, gf3d_vgraphics.vk_instance, &gf3d_vgraphics.surface);
     // setup a queue for rendering calls
+
+	slog_sync();
         
     // setup queues
     gf3d_vqueues_init(gf3d_vgraphics.gpu,gf3d_vgraphics.surface);
@@ -311,6 +327,8 @@ void gf3d_vgraphics_setup(
         return;
     }
     gf3d_vgraphics.logicalDeviceCreated = true;
+
+	slog_sync();
     
 }
 
@@ -486,16 +504,19 @@ Bool gf3d_vgraphics_device_validate(VkPhysicalDevice device)
 
 VkPhysicalDevice gf3d_vgraphics_select_device()
 {
-    int i;
+    unsigned int i;
     VkPhysicalDevice chosen = VK_NULL_HANDLE;
+	VkPhysicalDevice *valid = (VkPhysicalDevice*)gfc_allocate_array(sizeof(VkPhysicalDevice), gf3d_vgraphics.device_count);
     for (i = 0; i < gf3d_vgraphics.device_count; i++)
     {
         if (gf3d_vgraphics_device_validate(gf3d_vgraphics.devices[i]))
         {
-            chosen = gf3d_vgraphics.devices[i];
+			valid[i] = gf3d_vgraphics.devices[i];
+			if (valid[i] != VK_NULL_HANDLE)chosen = valid[i];
         }
     }
 
+	if (chosen == VK_NULL_HANDLE)chosen = gf3d_vgraphics.devices[0];
     return chosen;
 }
 
@@ -512,6 +533,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL gf3d_vgraphics_debug_parse(
 {
     //setting this up to always log the message, but this can be adjusted later
     slog("VULKAN DEBUG [%i]:%s",messageSeverity,pCallbackData->pMessage);
+	slog_sync();
     return VK_FALSE;
 }
 
@@ -584,6 +606,7 @@ void gf3d_vgraphics_semaphores_create()
     {
         slog("failed to create semaphores!");
     }
+	else slog("created semaphores");
     atexit(gf3d_vgraphics_semaphores_close);
 }
 

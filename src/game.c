@@ -10,6 +10,9 @@
 #include "gf3d_model.h"
 #include "gf3d_camera.h"
 #include "gf3d_texture.h"
+#include "gf3d_entity.h"
+#include "player.h"
+#include "skybox.h"
 
 int main(int argc,char *argv[])
 {
@@ -19,10 +22,7 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
-    Model *model;
-    Matrix4 modelMat;
-    Model *model2;
-    Matrix4 modelMat2;
+	Entity *player1, *player2, *player3, *skyboxCurrent, *skyboxFront, *skyboxBack;
     
     for (a = 1; a < argc;a++)
     {
@@ -36,30 +36,40 @@ int main(int argc,char *argv[])
     slog("gf3d begin");
     gf3d_vgraphics_init(
         "gf3d",                 //program name
-        1200,                   //screen width
-        700,                    //screen height
+        1400,                   //screen width
+        800,                    //screen height
         vector4d(0.51,0.75,1,1),//background color
         0,                      //fullscreen
         validate                //validation
     );
+	slog_sync();
+
+	gf3d_entity_init(1024);
+	//skybox = gf3d_entity_new();
     
     // main game loop
     slog("gf3d main loop begin");
-    model = gf3d_model_load("dino");
-    gfc_matrix_identity(modelMat);
-    model2 = gf3d_model_load("dino");
-    gfc_matrix_identity(modelMat2);
-    gfc_matrix_make_translation(
-            modelMat2,
-            vector3d(10,0,0)
-        );
+	player1 = player_spawn(vector3d(0, 0, 0), "baseship");
+	if (player1->model->mesh == NULL)
+	{
+		slog("Failed to load player mesh.");
+		exit(1);
+	}
+	//skybox->model = gf3d_model_load("skybox");
+	skyboxFront = create_skybox(vector3d(0, 0, -12), "skybox");
+	skyboxCurrent = create_skybox(vector3d(0, -120, -12), "skybox");
+	skyboxBack = create_skybox(vector3d(0, -240, -12), "skybox");
+
+
     while(!done)
     {
         SDL_PumpEvents();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
+		gf3d_entity_think_all();
         //update game things here
         
-        gf3d_vgraphics_rotate_camera(0.001);
+        //gf3d_vgraphics_rotate_camera(0.001);
+		/*
         gfc_matrix_rotate(
             modelMat,
             modelMat,
@@ -70,19 +80,22 @@ int main(int argc,char *argv[])
             modelMat2,
             0.002,
             vector3d(0,0,1));
+		*/
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
+
         bufferFrame = gf3d_vgraphics_render_begin();
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
-
-                gf3d_model_draw(model,bufferFrame,commandBuffer,modelMat);
-                gf3d_model_draw(model2,bufferFrame,commandBuffer,modelMat2);
+				gf3d_entity_draw_all(bufferFrame, commandBuffer);
+                //gf3d_model_draw(model,bufferFrame,commandBuffer,modelMat);
+                //gf3d_model_draw(model2,bufferFrame,commandBuffer,modelMat2);
                 
             gf3d_command_rendering_end(commandBuffer);
             
         gf3d_vgraphics_render_end(bufferFrame);
+
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
     }    

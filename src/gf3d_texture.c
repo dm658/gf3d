@@ -237,7 +237,7 @@ Texture *gf3d_texture_load(char *filename)
         vkMapMemory(gf3d_texture.device, stagingBufferMemory, 0, imageSize, 0, &data);
             memcpy(data, surface->pixels, imageSize);
         vkUnmapMemory(gf3d_texture.device, stagingBufferMemory);
-    SDL_UnlockSurface(surface);    
+    SDL_UnlockSurface(surface);  
     
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -270,9 +270,9 @@ Texture *gf3d_texture_load(char *filename)
     if (vkAllocateMemory(gf3d_texture.device, &allocInfo, NULL, &tex->textureImageMemory) != VK_SUCCESS)
     {
         slog("failed to allocate image memory!");
+		exit(1);
         gf3d_texture_delete(tex);
         SDL_FreeSurface(surface);
-        return NULL;
     }
 
     vkBindImageMemory(gf3d_texture.device, tex->textureImage, tex->textureImageMemory, 0);    

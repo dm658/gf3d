@@ -17,7 +17,7 @@ typedef struct
     const char* * layerNames;
 }vValidation;
 
-static vValidation gf3d_validation = {0};
+static vValidation gf3d_validation = {1}; //Validate 0 to 1
 
 void gf3d_validation_query_layer_properties()
 {
