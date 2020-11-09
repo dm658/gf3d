@@ -1,8 +1,8 @@
 
 #include "simple_logger.h"
 
+#include "gfc_vector.h"
 #include "gf3d_entity.h"
-
 
 typedef struct{
 	Entity  *entity_list;
@@ -64,6 +64,7 @@ Entity *gf3d_entity_new()
 		{
 			gf3d_entity.entity_list[i]._inuse = 1;
 			gfc_matrix_identity(gf3d_entity.entity_list[i].modelMatrix);
+			slog("Entity %s is ready.", gf3d_entity.entity_list[i].name);
 			return &gf3d_entity.entity_list[i];
 		}
 	}
@@ -88,6 +89,7 @@ void gf3d_entity_think_all()
 	{
 		if (!gf3d_entity.entity_list[i]._inuse) continue;
 		gf3d_entity_think(&gf3d_entity.entity_list[i]);
+		entity_collision_check_all(&gf3d_entity.entity_list[i]);
 	}
 	//slog("All entities are thinking.");
 }
@@ -152,3 +154,83 @@ int gf3d_entity_collision_test(Entity *self)
 	}
 }
 */
+
+void entity_collide(Entity *e1, Entity *e2)
+{
+	//float x = e1->collider.origin.x - e2->collider.origin.x;
+	//float y = e1->collider.origin.y - e2->collider.origin.y;
+	//float z = e1->collider.origin.z - e2->collider.origin.z;
+
+	float magnitude = vector3d_magnitude_between(e1->collider.origin, e2->collider.origin);
+
+	if (!e1 || !e2) return;
+
+	if ((e1->collider.radius + e2->collider.radius) > magnitude)
+	{
+		slog("Projectile %s hit ent %s", e1->name, e2->name);
+
+		if ((e1->collider.radius == 0.0f) || (e2->collider.radius == 0.0f))
+		{
+			return;
+		}
+		if (e1->entityType == e2->entityType)
+		{
+			return;
+		}
+		if ((e1->entityType == PLAYER_PROJECTILE) && (e2->entityType == PLAYER))
+		{
+			slog("Player shoots projectile.");
+			slog("Projectile %s hit ent %s", e1->name, e2->name);
+			return;
+		}
+		if ((e2->entityType == PLAYER_PROJECTILE) && (e1->entityType == PLAYER))
+		{
+			slog("Player shoots projectile.");
+			slog("Projectile %s hit ent %s", e1->name, e2->name);
+			return;
+		}
+		if ((e1->entityType == PICKUP_HEALTH) || (e1->entityType == PICKUP_ARMOR) || (e1->entityType == PICKUP_SUPPORT))
+		{
+			if (e2->entityType == PLAYER)
+			{
+				gf3d_entity_free(e1);
+			}
+			return;
+		}
+		if ((e2->entityType == PICKUP_HEALTH) || (e2->entityType == PICKUP_ARMOR) || (e2->entityType == PICKUP_SUPPORT))
+		{
+			if (e1->entityType == PLAYER)
+			{
+				gf3d_entity_free(e2);
+			}
+			return;
+		}
+		if (e1->entityType == PLAYER)
+		{
+			slog("Player hit.");
+			gf3d_entity_free(e2);
+			return;
+		}
+		if (e2->entityType == PLAYER)
+		{
+			slog("Player hit.");
+			gf3d_entity_free(e1);
+			return;
+		}
+
+		slog("Normal collision.");
+		slog("Projectile %s hit ent %s", e1->name, e2->name);
+		gf3d_entity_free(e1);
+		gf3d_entity_free(e2);
+	}
+}
+
+void entity_collision_check_all(Entity *self)
+{
+	if (!self) return;
+	for (Uint32 i = 0; i < gf3d_entity.entity_count; i++)
+	{
+		if (&gf3d_entity.entity_list[i] == self) continue;
+		entity_collide(self, &gf3d_entity.entity_list[i]);
+	}
+}

@@ -3,6 +3,7 @@
 #include "simple_logger.h"
 #include "gfc_vector.h"
 #include "gfc_matrix.h"
+#include "gfc_types.h"
 
 #include "gf3d_vgraphics.h"
 #include "gf3d_pipeline.h"
@@ -13,6 +14,8 @@
 #include "gf3d_entity.h"
 #include "player.h"
 #include "skybox.h"
+#include "enemy.h"
+#include "pickup.h"
 
 int main(int argc,char *argv[])
 {
@@ -22,7 +25,9 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
-	Entity *player1, *player2, *player3, *skyboxCurrent, *skyboxFront, *skyboxBack;
+	float enemyRangeMin;
+	float enemyRangeMax;
+	Entity *player1, *enemy, *armor, *health, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
     
     for (a = 1; a < argc;a++)
     {
@@ -55,11 +60,24 @@ int main(int argc,char *argv[])
 		slog("Failed to load player mesh.");
 		exit(1);
 	}
+	
+	enemyRangeMin = gfc_random() * -30.0f;
+	enemyRangeMax = gfc_random() * -70.0f;
+	enemy = enemy_spawn(vector3d(0, -20, 0), "rage");
+	armor = pickup_spawn(vector3d(0, -70, 0), "armor", PICKUP_ARMOR);
+	health = pickup_spawn(vector3d(0, -40, 0), "healthsmall", PICKUP_HEALTH);
+	
 	//skybox->model = gf3d_model_load("skybox");
-	skyboxFront = create_skybox(vector3d(0, 0, -12), "skybox");
-	skyboxCurrent = create_skybox(vector3d(0, -120, -12), "skybox");
-	skyboxBack = create_skybox(vector3d(0, -240, -12), "skybox");
+	skyboxOne = create_skybox(vector3d(0, 0, -12), "skybox");
+	skyboxTwo = create_skybox(vector3d(0, -120, -12), "skybox");
+	skyboxThree = create_skybox(vector3d(0, -240, -12), "skybox");
+	skyboxFour = create_skybox(vector3d(0, -360, -12), "skybox");
 
+	slog("Player collider radius: %f", player1->collider.radius);
+	slog("Enemy collider radius: %f", enemy->collider.radius);
+	slog("Armor collider radius: %f", armor->collider.radius);
+	slog("Health collider radius: %f", health->collider.radius);
+	slog("Skybox collider radius: %f", skyboxOne->collider.radius);
 
     while(!done)
     {

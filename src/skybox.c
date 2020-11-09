@@ -4,9 +4,10 @@
 void skybox_think(Entity *self)
 {
 	self->position.y += 0.025;
+	self->collider.origin = self->position;
 	if (self->position.y >= 120.0)
 	{
-		Entity *skyboxBack = create_skybox(vector3d(0, -240, -12), "skybox");
+		Entity *skyboxBack = create_skybox(vector3d(0, -360, -12), "skybox");
 		skybox_despawn(self);
 	}
 }
@@ -33,6 +34,9 @@ Entity *create_skybox(Vector3D position, const char *modelName)
 	slog("Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = skybox_think;
 	ent->free = skybox_despawn;
+	ent->entityType = SKYBOX;
+	gfc_word_cpy(ent->name, "Skybox");
+	ent->collider.radius = 0.0f;
 
 	slog("Skybox loaded.");
 	return ent;

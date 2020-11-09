@@ -2,6 +2,7 @@
 #define __GF3D_ENTITY_H__
 
 #include "gfc_types.h"
+#include "gfc_text.h"
 #include "gfc_vector.h"
 #include "gfc_matrix.h"
 
@@ -10,6 +11,27 @@
 /**
 * @purpose this is the file to access the entity management system
 */
+typedef struct
+{
+	Vector3D origin;
+	float radius;
+}Sphere;
+
+typedef enum
+{
+	DEFAULT,
+	SKYBOX,
+	PLAYER,
+	ENEMY,
+	PROJECTILE,
+	PLAYER_PROJECTILE,
+	ENEMY_PROJECTILE,
+	MOVING_BODY,
+	PICKUP_HEALTH,
+	PICKUP_ARMOR,
+	PICKUP_SUPPORT
+}EntityType;
+
 
 typedef struct Entity_S
 {
@@ -18,10 +40,13 @@ typedef struct Entity_S
 	Vector3D	velocity;
 	Vector3D	rotation;
 	Vector3D	scale;
-	//Sphere		boundingSphere;
-	//AABB		boundingBox;
+	Sphere		collider;
+	Sphere		absorbCollider;
 	Model		*model;
+	struct Entity_S *owner;
 	Matrix4		modelMatrix;
+	EntityType  entityType;
+	TextWord	name;
 	void		(*update)(struct Entity_S *self);
 	void		(*think)(struct Entity_S *self);
 	void		(*touch)(struct Entity_S *self, struct Entity_S *other);
@@ -44,6 +69,8 @@ Entity *gf3d_entity_new();
 void gf3d_entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
 void gf3d_entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+
+void entity_collision_check_all(Entity *self);
 
 void gf3d_entity_think_all();
 

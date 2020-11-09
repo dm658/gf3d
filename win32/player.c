@@ -14,7 +14,13 @@ typedef enum
 typedef struct
 {
 	char *modelName;
-	int class;
+	int health;
+	int damagePrimary;
+	int damageSecondary;
+	int reloadTime;
+	int user_last_click;
+	Entity primaryFire;
+	Entity secondaryFire;
 }PlayerData;
 
 void player_die(Entity *self)
@@ -46,11 +52,21 @@ Entity *player_spawn(Vector3D position, const char *modelName)
 		gf3d_entity_free(ent);
 		return NULL;
 	}
+	pd->user_last_click = 0;
+	pd->reloadTime = 500;
 	ent->data = (void*)pd;
 	ent->model = gf3d_model_load(modelName);
 	vector3d_copy(ent->position, position);
+	slog("Player Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = player_think;
+	ent->entityType = PLAYER;
+	gfc_word_cpy(ent->name, "Player One");
+	ent->collider.radius = 1.0f;
+	ent->collider.origin = position;
+	ent->absorbCollider.radius = 5.0f;
+	ent->absorbCollider.origin = position;
 	ent->free = player_die;
+
 
 	slog("Player lives.");
 	return ent;
@@ -58,6 +74,8 @@ Entity *player_spawn(Vector3D position, const char *modelName)
 
 void player_think(Entity *self)
 {
+	PlayerData *pd = (PlayerData *)self->data;
+	
 	const Uint8 *keys;
 	keys = SDL_GetKeyboardState(NULL);
 	if (keys[SDL_SCANCODE_S])
@@ -92,11 +110,17 @@ void player_think(Entity *self)
 			self->position.x = 36.0;
 		}
 	}
-	if (SDL_BUTTON(SDL_BUTTON_LEFT))
-	{
-		slog("Projectile fired. %d", SDL_GetTicks());
-		Entity *projectile = projectile_spawn(self->position, "singlebullet");
-	}
+	self->collider.origin = self->position;
+
+	//slog("Before Shoot.");
+	if (pd->user_last_click + pd->reloadTime < SDL_GetTicks())
+		//slog("If Statement passed, reload time ready.");
+		if (SDL_GetMouseState(NULL, NULL) && SDL_BUTTON(SDL_BUTTON_LEFT))
+		{
+			slog("Projectile fired. %d", SDL_GetTicks());
+			Entity *projectile = projectile_spawn(self->position, "singlebullet", PLAYER_PROJECTILE);
+			pd->user_last_click = SDL_GetTicks();
+		}
 
 	if (keys[SDL_SCANCODE_X])
 	{
@@ -110,4 +134,6 @@ void player_think(Entity *self)
 	{
 		self->rotation.z += 0.01;
 	}
+	vector3d_copy(self->collider.origin, self->position);
+	vector3d_copy(self->absorbCollider.origin, self->position);
 }

@@ -6,15 +6,19 @@ typedef struct
 {
 	char *modelName;
 	float velocity;
-	float reloadTime;
+	//float reloadTime;
+	Entity owner;
 	float damage;
 }ProjectileData;
 
 void projectile_think(Entity *self)
 {
-	self->position.y -= 1.0;
-	if (self->position.y <= -700.0)
+	self->position.y -= 6.0;
+	vector3d_copy(self->collider.origin, self->position);
+	//slog("%f", self->position.y);
+	if (self->position.y <= -300.0)
 	{
+		slog("Projectile despawn");
 		projectile_die(self);
 	}
 }
@@ -28,10 +32,11 @@ void projectile_die(Entity *self)
 	{
 		free(pd);
 		self->data = NULL;
+		gf3d_entity_free(self);
 	}
 }
 
-Entity *projectile_spawn(Vector3D position, const char *modelName)
+Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType type)
 {
 	ProjectileData *pd;
 	Entity *ent;
@@ -53,6 +58,10 @@ Entity *projectile_spawn(Vector3D position, const char *modelName)
 	vector3d_copy(ent->position, position);
 	ent->think = projectile_think;
 	ent->free = projectile_think;
+	ent->entityType = type;
+	gfc_word_cpy(ent->name, "Projectile");
+	ent->collider.radius = 100.0f;
+	ent->collider.origin = position;
 
 	return ent;
 }
