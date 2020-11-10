@@ -9,6 +9,7 @@ typedef struct
 	int health;
 	int damage;
 	int reloadTime;
+	int enemy_last_attack;
 	Entity primaryFire;
 }EnemyData;
 

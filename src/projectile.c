@@ -6,21 +6,34 @@ typedef struct
 {
 	char *modelName;
 	float velocity;
-	//float reloadTime;
+	int health;
 	Entity owner;
 	float damage;
 }ProjectileData;
 
 void projectile_think(Entity *self)
 {
-	self->position.y -= 6.0;
+	switch (self->entityType)
+	{
+		case PLAYER_PROJECTILE:
+			self->position.y -= 6.0;
+			break;
+		case ENEMY_PROJECTILE:
+			self->position.y += 3.0;
+			break;
+		default:
+			slog("Projectile owner undefined.");
+			break;
+	}
+
 	vector3d_copy(self->collider.origin, self->position);
 	//slog("%f", self->position.y);
-	if (self->position.y <= -300.0)
+	if ((self->position.y <= -300.0) || (self->position.y >= 300.0))
 	{
 		slog("Projectile despawn");
 		projectile_die(self);
 	}
+
 }
 
 void projectile_die(Entity *self)
@@ -60,8 +73,9 @@ Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType ty
 	ent->free = projectile_think;
 	ent->entityType = type;
 	gfc_word_cpy(ent->name, "Projectile");
-	ent->collider.radius = 100.0f;
+	ent->collider.radius = 3.0f;
 	ent->collider.origin = position;
+	ent->absorbCollider.radius = 0.0f;
 
 	return ent;
 }

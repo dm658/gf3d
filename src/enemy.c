@@ -6,10 +6,19 @@
 
 void enemy_think(Entity *self)
 {
+	EnemyData *ed = (EnemyData *)self->data;
+
 	self->position.x -= 0.2;
 	vector3d_copy(self->collider.origin, self->position);
+
+	if (ed->enemy_last_attack + ed->reloadTime < SDL_GetTicks())
+	{
+		Entity *attack = projectile_spawn(self->position, "singlebullet", ENEMY_PROJECTILE);
+		ed->enemy_last_attack = SDL_GetTicks();
+	}
+
 	//slog("%f", self->position.y);
-	if ((self->position.x <= -300.0) || (self->position.x >= 300.0))
+	if ((self->position.x <= -200.0) || (self->position.x >= 200.0))
 	{
 		slog("Enemy dies.");
 		enemy_die(self);
@@ -55,7 +64,7 @@ Entity *enemy_spawn(Vector3D position, const char *modelName)
 	ent->think = enemy_think;
 	ent->entityType = ENEMY;
 	gfc_word_cpy(ent->name, "Enemy");
-	ent->collider.radius = 100.0f;
+	ent->collider.radius = 2.0f;
 	ent->collider.origin = position;
 	ent->free = enemy_die;
 

@@ -3,7 +3,7 @@
 
 void skybox_think(Entity *self)
 {
-	self->position.y += 0.025;
+	self->position.y += 0.075;
 	self->collider.origin = self->position;
 	if (self->position.y >= 120.0)
 	{

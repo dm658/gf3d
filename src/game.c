@@ -54,7 +54,7 @@ int main(int argc,char *argv[])
     
     // main game loop
     slog("gf3d main loop begin");
-	player1 = player_spawn(vector3d(0, 0, 0), "baseship");
+	player1 = player_spawn(vector3d(0, -10, 0), "baseship", PLAYER_ROGUE);
 	if (player1->model->mesh == NULL)
 	{
 		slog("Failed to load player mesh.");
@@ -63,9 +63,9 @@ int main(int argc,char *argv[])
 	
 	enemyRangeMin = gfc_random() * -30.0f;
 	enemyRangeMax = gfc_random() * -70.0f;
-	enemy = enemy_spawn(vector3d(0, -20, 0), "rage");
-	armor = pickup_spawn(vector3d(0, -70, 0), "armor", PICKUP_ARMOR);
-	health = pickup_spawn(vector3d(0, -40, 0), "healthsmall", PICKUP_HEALTH);
+	enemy = enemy_spawn(vector3d(30, -60, 0), "rage");
+	//armor = pickup_spawn(vector3d(enemyRangeMax - enemyRangeMin, -240, 0), "armor", PICKUP_ARMOR);
+	//health = pickup_spawn(vector3d(10, -180, 0), "miniship", PICKUP_SUPPORT);
 	
 	//skybox->model = gf3d_model_load("skybox");
 	skyboxOne = create_skybox(vector3d(0, 0, -12), "skybox");
@@ -75,8 +75,8 @@ int main(int argc,char *argv[])
 
 	slog("Player collider radius: %f", player1->collider.radius);
 	slog("Enemy collider radius: %f", enemy->collider.radius);
-	slog("Armor collider radius: %f", armor->collider.radius);
-	slog("Health collider radius: %f", health->collider.radius);
+	//slog("Armor collider radius: %f", armor->collider.radius);
+	//slog("Health collider radius: %f", health->collider.radius);
 	slog("Skybox collider radius: %f", skyboxOne->collider.radius);
 
     while(!done)
@@ -87,12 +87,8 @@ int main(int argc,char *argv[])
         //update game things here
         
         //gf3d_vgraphics_rotate_camera(0.001);
+		
 		/*
-        gfc_matrix_rotate(
-            modelMat,
-            modelMat,
-            0.002,
-            vector3d(1,0,0));
         gfc_matrix_rotate(
             modelMat2,
             modelMat2,

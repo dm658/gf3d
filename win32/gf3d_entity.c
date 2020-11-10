@@ -165,9 +165,64 @@ void entity_collide(Entity *e1, Entity *e2)
 
 	if (!e1 || !e2) return;
 
+	if ((e1->entityType == SKYBOX) || (e2->entityType == SKYBOX))
+	{
+		return;
+	}
+
+	if (e1->absorbCollider.radius > 0.0 && e2->absorbCollider.radius > 0.0)
+	{
+		if (e2->entityType == PLAYER)
+		{
+			if ((e1->entityType == PICKUP_HEALTH) || (e1->entityType == PICKUP_ARMOR) || (e1->entityType == PICKUP_SUPPORT))
+			{
+				if (e1->position.x > e2->position.x)
+				{
+					e1->position.x -= 0.2;
+				}
+				if (e1->position.x < e2->position.x)
+				{
+					e1->position.x += 0.2;
+				}
+				if (e1->position.z > e2->position.z)
+				{
+					e1->position.z -= 0.2;
+				}
+				if (e1->position.z < e2->position.z)
+				{
+					e1->position.z += 0.2;
+				}
+			}
+		}
+		
+		if (e1->entityType == PLAYER)
+		{
+			if ((e2->entityType == PICKUP_HEALTH) || (e2->entityType == PICKUP_ARMOR) || (e2->entityType == PICKUP_SUPPORT))
+			{
+				if (e2->position.x > e1->position.x)
+				{
+					e2->position.x -= 0.2;
+				}
+				if (e2->position.x < e1->position.x)
+				{
+					e2->position.x += 0.2;
+				}
+				if (e2->position.z > e1->position.z)
+				{
+					e1->position.z -= 0.2;
+				}
+				if (e2->position.z < e1->position.z)
+				{
+					e2->position.z += 0.2;
+				}
+			}
+		}
+		
+	}
+
 	if ((e1->collider.radius + e2->collider.radius) > magnitude)
 	{
-		slog("Projectile %s hit ent %s", e1->name, e2->name);
+		//slog("Projectile %s hit ent %s", e1->name, e2->name);
 
 		if ((e1->collider.radius == 0.0f) || (e2->collider.radius == 0.0f))
 		{
@@ -177,22 +232,36 @@ void entity_collide(Entity *e1, Entity *e2)
 		{
 			return;
 		}
+
+		//Player shooting
 		if ((e1->entityType == PLAYER_PROJECTILE) && (e2->entityType == PLAYER))
 		{
-			slog("Player shoots projectile.");
-			slog("Projectile %s hit ent %s", e1->name, e2->name);
+			//slog("Player shoots projectile.");
+			//slog("Projectile %s hit ent %s", e1->name, e2->name);
 			return;
 		}
 		if ((e2->entityType == PLAYER_PROJECTILE) && (e1->entityType == PLAYER))
 		{
-			slog("Player shoots projectile.");
-			slog("Projectile %s hit ent %s", e1->name, e2->name);
+			//slog("Player shoots projectile.");
+			//slog("Projectile %s hit ent %s", e1->name, e2->name);
 			return;
 		}
+
+		//Enemy shooting
+		if ((e1->entityType == ENEMY_PROJECTILE) && (e2->entityType == ENEMY))
+		{
+			return;
+		}
+		if ((e2->entityType == ENEMY_PROJECTILE) && (e1->entityType == ENEMY))
+		{
+			return;
+		}
+
 		if ((e1->entityType == PICKUP_HEALTH) || (e1->entityType == PICKUP_ARMOR) || (e1->entityType == PICKUP_SUPPORT))
 		{
 			if (e2->entityType == PLAYER)
 			{
+				slog("Player picked up item.");
 				gf3d_entity_free(e1);
 			}
 			return;
@@ -205,6 +274,7 @@ void entity_collide(Entity *e1, Entity *e2)
 			}
 			return;
 		}
+		
 		if (e1->entityType == PLAYER)
 		{
 			slog("Player hit.");
@@ -217,6 +287,7 @@ void entity_collide(Entity *e1, Entity *e2)
 			gf3d_entity_free(e1);
 			return;
 		}
+		
 
 		slog("Normal collision.");
 		slog("Projectile %s hit ent %s", e1->name, e2->name);

@@ -2,14 +2,19 @@
 
 #include "pickup.h"
 
+Matrix4 modelRotateZ;
+
 void pickup_think(Entity *self)
 {
-	self->position.y -= 0.2;
+	self->position.y += 0.2;
+	vector3d_rotate_about_z(&self->rotation, 1.0);
 	vector3d_copy(self->collider.origin, self->position);
+	vector3d_copy(self->absorbCollider.origin, self->position);
+	//gf3d_entity_update(self);
+
 	//slog("%f", self->position.y);
-	if ((self->position.y <= -300.0) || (self->position.y >= 300.0))
+	if ((self->position.y <= -300.0) || (self->position.y >= 10.0))
 	{
-		slog("Pickup despawn");
 		pickup_despawn(self);
 	}
 }
@@ -23,6 +28,7 @@ void pickup_despawn(Entity *self)
 	{
 		free(pd);
 		self->data = NULL;
+		slog("Pickup despawn");
 		gf3d_entity_free(self);
 	}
 }
@@ -51,9 +57,12 @@ Entity *pickup_spawn(Vector3D position, const char *modelName, EntityType type)
 	slog("Pickup Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = pickup_think;
 	pd->pickupType = type;
+	ent->entityType = type;
 	gfc_word_cpy(ent->name, "Pickup");
-	ent->collider.radius = 100.0f;
+	ent->collider.radius = 0.5f;
 	ent->collider.origin = position;
+	ent->absorbCollider.radius = 1.0f;
+	ent->absorbCollider.origin = position;
 	ent->free = pickup_despawn;
 
 
