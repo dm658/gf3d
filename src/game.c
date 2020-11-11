@@ -25,9 +25,10 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
-	float enemyRangeMin;
-	float enemyRangeMax;
-	Entity *player1, *enemy, *armor, *health, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
+	int entityLoadBuffer = 0, entityLoadBuffer1 = 0, entityLoadBuffer2 = 0, entityLoadBuffer3 = 0, entityLoadBuffer4 = 0;
+	Model *reference;
+	Vector3D playerCurrent;
+	Entity *player1, *enemy, *armor, *health, *support, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
     
     for (a = 1; a < argc;a++)
     {
@@ -49,24 +50,27 @@ int main(int argc,char *argv[])
     );
 	slog_sync();
 
-	gf3d_entity_init(1024);
+	gf3d_entity_init(8192);
 	//skybox = gf3d_entity_new();
     
     // main game loop
     slog("gf3d main loop begin");
-	player1 = player_spawn(vector3d(0, -10, 0), "baseship", PLAYER_ROGUE);
+
+	player1 = player_spawn(vector3d(0, -10, 0), "baseship", PLAYER_JACK);
 	if (player1->model->mesh == NULL)
 	{
 		slog("Failed to load player mesh.");
 		exit(1);
 	}
+
+	enemy_spawner(2, "chase");
+	enemy_spawner(2, "rage");
 	
-	enemyRangeMin = gfc_random() * -30.0f;
-	enemyRangeMax = gfc_random() * -70.0f;
-	enemy = enemy_spawn(vector3d(30, -60, 0), "rage");
-	//armor = pickup_spawn(vector3d(enemyRangeMax - enemyRangeMin, -240, 0), "armor", PICKUP_ARMOR);
-	//health = pickup_spawn(vector3d(10, -180, 0), "miniship", PICKUP_SUPPORT);
-	
+	health = pickup_spawn(vector3d(20.0, -120.0, 4.0), "armor", PICKUP_ARMOR);
+	armor = pickup_spawn(vector3d(20.0, -240.0, 4.0), "armor", PICKUP_ARMOR);
+	support = pickup_spawn(vector3d(40.0, -360.0, 4.0), "miniship", PICKUP_SUPPORT);
+
+
 	//skybox->model = gf3d_model_load("skybox");
 	skyboxOne = create_skybox(vector3d(0, 0, -12), "skybox");
 	skyboxTwo = create_skybox(vector3d(0, -120, -12), "skybox");
@@ -74,7 +78,6 @@ int main(int argc,char *argv[])
 	skyboxFour = create_skybox(vector3d(0, -360, -12), "skybox");
 
 	slog("Player collider radius: %f", player1->collider.radius);
-	slog("Enemy collider radius: %f", enemy->collider.radius);
 	//slog("Armor collider radius: %f", armor->collider.radius);
 	//slog("Health collider radius: %f", health->collider.radius);
 	slog("Skybox collider radius: %f", skyboxOne->collider.radius);
@@ -83,6 +86,39 @@ int main(int argc,char *argv[])
     {
         SDL_PumpEvents();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
+
+		if (entityLoadBuffer + 10000 < SDL_GetTicks())
+		{
+			enemy_spawner(2, "chase");
+			enemy_spawner(2, "rage");
+			pickup_spawner(1, "healthsmall", PICKUP_HEALTH);
+			entityLoadBuffer = SDL_GetTicks();
+		}
+		if (entityLoadBuffer1 + 5000 < SDL_GetTicks())
+		{
+			enemy_spawner(1, "rage");
+			pickup_spawner(1, "healthmedium", PICKUP_HEALTH);
+			entityLoadBuffer1 = SDL_GetTicks();
+		}
+		if (entityLoadBuffer2 + 6000 < SDL_GetTicks())
+		{
+			enemy_spawner(1, "asteroid");
+			pickup_spawner(1, "healthbig", PICKUP_HEALTH);
+			entityLoadBuffer2 = SDL_GetTicks();
+		}
+		if (entityLoadBuffer3 + 18000 < SDL_GetTicks())
+		{
+			enemy_spawner(1, "ring");
+			pickup_spawner(1, "armor", PICKUP_ARMOR);
+			entityLoadBuffer3 = SDL_GetTicks();
+		}
+		if (entityLoadBuffer4 + 18000 < SDL_GetTicks())
+		{
+			enemy_spawner(1, "jeff");
+			pickup_spawner(1, "miniship", PICKUP_SUPPORT);
+			entityLoadBuffer4 = SDL_GetTicks();
+		}
+
 		gf3d_entity_think_all();
         //update game things here
         
@@ -110,6 +146,28 @@ int main(int argc,char *argv[])
             
         gf3d_vgraphics_render_end(bufferFrame);
 
+		playerCurrent = player1->position;
+		if (keys[SDL_SCANCODE_1])
+		{
+			slog("JACK pressed.");
+			player_die(player1);
+			player1 = player_spawn(playerCurrent, "baseship", PLAYER_JACK);
+			slog("Jack-of-All is ready.");
+		}
+		if (keys[SDL_SCANCODE_2])
+		{
+			slog("KNIGHT pressed.");
+			player_die(player1);
+			player1 = player_spawn(playerCurrent, "baseship", PLAYER_KNIGHT);
+			slog("Knight in arms is ready.");
+		}
+		if (keys[SDL_SCANCODE_3])
+		{
+			slog("ROGUE pressed.");
+			player_die(player1);
+			player1 = player_spawn(playerCurrent, "baseship", PLAYER_ROGUE);
+			slog("Thief in the night is ready.");
+		}
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
     }    

@@ -8,7 +8,7 @@ typedef struct
 	float velocity;
 	int health;
 	Entity owner;
-	float damage;
+	int damage;
 }ProjectileData;
 
 void projectile_think(Entity *self)
@@ -20,6 +20,7 @@ void projectile_think(Entity *self)
 			break;
 		case ENEMY_PROJECTILE:
 			self->position.y += 3.0;
+			self->collider.radius = 1.0;
 			break;
 		default:
 			slog("Projectile owner undefined.");
@@ -49,7 +50,7 @@ void projectile_die(Entity *self)
 	}
 }
 
-Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType type)
+Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType type, ProjectileType projType)
 {
 	ProjectileData *pd;
 	Entity *ent;
@@ -73,9 +74,47 @@ Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType ty
 	ent->free = projectile_think;
 	ent->entityType = type;
 	gfc_word_cpy(ent->name, "Projectile");
-	ent->collider.radius = 3.0f;
 	ent->collider.origin = position;
 	ent->absorbCollider.radius = 0.0f;
 
+	switch (projType)
+	{
+		case SINGLE:
+			pd->health = 1;
+			pd->velocity = 6.0;
+			pd->damage = 2;
+			ent->collider.radius = 5.0f;
+			break;
+		case DOUBLE:
+			pd->health = 1;
+			pd->velocity = 6.0;
+			pd->damage = 4;
+			ent->collider.radius = 10.0f;
+			break;
+		case ARROW:
+			pd->health = 1;
+			pd->velocity = 12.0;
+			pd->damage = 2;
+			ent->collider.radius = 3.0f;
+			break;
+		case ROUND:
+			pd->health = 1;
+			pd->velocity = 3.0;
+			pd->damage = 2;
+			ent->collider.radius = 5.0f;
+			break;
+		case SHIELD:
+			pd->health = 5;
+			pd->velocity = 6.0;
+			pd->damage = 0;
+			ent->collider.radius = 10.0f;
+			break;
+		case IMPACT:
+			pd->health = 1;
+			pd->velocity = 6.0;
+			pd->damage = 2;
+			ent->collider.radius = 3.0f;
+			break;
+	}
 	return ent;
 }

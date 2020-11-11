@@ -209,7 +209,7 @@ void entity_collide(Entity *e1, Entity *e2)
 				}
 				if (e2->position.z > e1->position.z)
 				{
-					e1->position.z -= 0.2;
+					e2->position.z -= 0.2;
 				}
 				if (e2->position.z < e1->position.z)
 				{
@@ -262,7 +262,20 @@ void entity_collide(Entity *e1, Entity *e2)
 			if (e2->entityType == PLAYER)
 			{
 				slog("Player picked up item.");
-				gf3d_entity_free(e1);
+				if (e1->entityType == PICKUP_HEALTH)
+				{
+					e2->health += e1->health;
+					gf3d_entity_free(e1);
+				}
+				if (e2->entityType == PICKUP_ARMOR)
+				{
+					e2->health += 20;
+					gf3d_entity_free(e1);
+				}
+				if (e1->entityType == PICKUP_SUPPORT)
+				{
+					gf3d_entity_free(e1);
+				}
 			}
 			return;
 		}
@@ -270,7 +283,21 @@ void entity_collide(Entity *e1, Entity *e2)
 		{
 			if (e1->entityType == PLAYER)
 			{
-				gf3d_entity_free(e2);
+				slog("Player picked up item.");
+				if (e2->entityType == PICKUP_HEALTH)
+				{
+					e1->health += e2->health;
+					gf3d_entity_free(e2);
+				}
+				if (e2->entityType == PICKUP_ARMOR)
+				{
+					e1->health += 20;
+					gf3d_entity_free(e2);
+				}
+				if (e2->entityType == PICKUP_SUPPORT)
+				{
+					gf3d_entity_free(e2);
+				}
 			}
 			return;
 		}
@@ -278,13 +305,23 @@ void entity_collide(Entity *e1, Entity *e2)
 		if (e1->entityType == PLAYER)
 		{
 			slog("Player hit.");
-			gf3d_entity_free(e2);
+			e1->health -= e2->damage;
+			if (e1->health <= 0)
+			{
+				gf3d_entity_free(e1);
+				exit(0);
+			}
 			return;
 		}
 		if (e2->entityType == PLAYER)
 		{
 			slog("Player hit.");
-			gf3d_entity_free(e1);
+			e2->health -= e1->damage;
+			if (e1->health <= 0)
+			{
+				gf3d_entity_free(e2);
+				exit(0);
+			}
 			return;
 		}
 		

@@ -11,6 +11,8 @@ typedef enum
 	PLAYER_KNIGHT
 }PlayerClass;
 
+void player_think(Entity *self);
+void player_die(Entity *self);
 Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playerClass);
 
 #endif

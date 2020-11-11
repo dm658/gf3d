@@ -2,11 +2,11 @@
 
 #include "player.h"
 
-void player_think(Entity *self);
 
 typedef struct
 {
 	char *modelName;
+	int active;
 	int health;
 	float speed;
 	int damagePrimary;
@@ -15,6 +15,8 @@ typedef struct
 	int user_last_click;
 	char *primaryFire;
 	char *secondaryFire;
+	ProjectileType primaryType;
+	ProjectileType secondaryType;
 }PlayerData;
 
 void player_die(Entity *self)
@@ -26,6 +28,7 @@ void player_die(Entity *self)
 	{
 		free(pd);
 		self->data = NULL;
+		gf3d_entity_free(self);
 	}
 }
 
@@ -51,7 +54,7 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 	}
 	pd->user_last_click = 0;
 	ent->data = (void*)pd;
-	//ent->model = gf3d_model_load(modelName);
+	ent->model = gf3d_model_load(modelName);
 	vector3d_copy(ent->position, position);
 	slog("Player Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = player_think;
@@ -70,21 +73,29 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 		case PLAYER_JACK:
 			ent->model = gf3d_model_load("baseship");
 			pd->reloadTime = 250;
-			pd->health = 60;
+			pd->health = 6;
+			ent->health = pd->health;
 			pd->speed = 0.5;
 			pd->damagePrimary = 2;
+			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 3;
-			gfc_word_cpy(pd->primaryFire, "singlebullet");
-			gfc_word_cpy(pd->secondaryFire, "round");
+			ent->collider.radius = 0.5f;
+			ent->absorbCollider.radius = 5.0f;
+			pd->primaryFire = "singlebullet";
+			pd->secondaryFire = "round";
 
 			break;
 		case PLAYER_KNIGHT:
 			ent->model = gf3d_model_load("tankship");
 			pd->reloadTime = 500;
-			pd->health = 120;
+			pd->health = 12;
+			ent->health = pd->health;
 			pd->speed = 0.1;
 			pd->damagePrimary = 4;
+			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 0;
+			ent->collider.radius = 1.0f;
+			ent->absorbCollider.radius = 5.0f;
 			pd->primaryFire = "doublebullet";
 			pd->secondaryFire = "shield";
 
@@ -92,10 +103,14 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 		case PLAYER_ROGUE:
 			ent->model = gf3d_model_load("sharpship");
 			pd->reloadTime = 100;
-			pd->health = 30;
+			pd->health = 3;
+			ent->health = pd->health;
 			pd->speed = 0.9;
 			pd->damagePrimary = 1;
+			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 3;
+			ent->collider.radius = 0.25f;
+			ent->absorbCollider.radius = 5.0f;
 			pd->primaryFire = "arrow";
 			pd->secondaryFire = "impact";
 
@@ -158,13 +173,13 @@ void player_think(Entity *self)
 		if (SDL_GetMouseState(NULL, NULL) && SDL_BUTTON(SDL_BUTTON_LEFT))
 		{
 			slog("Projectile fired. %d", SDL_GetTicks());
-			Entity *primary = projectile_spawn(self->position, pd->primaryFire, PLAYER_PROJECTILE);
+			Entity *primary = projectile_spawn(self->position, pd->primaryFire, PLAYER_PROJECTILE, pd->primaryType);
 			pd->user_last_click = SDL_GetTicks();
 		}
 		if (keys[SDL_SCANCODE_E])
 		{
 			slog("Projectile fired. %d", SDL_GetTicks());
-			Entity *secondary = projectile_spawn(self->position, pd->secondaryFire, PLAYER_PROJECTILE);
+			Entity *secondary = projectile_spawn(self->position, pd->secondaryFire, PLAYER_PROJECTILE, pd->secondaryType);
 			pd->user_last_click = SDL_GetTicks();
 		}
 	}

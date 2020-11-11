@@ -2,7 +2,8 @@
 
 #include "enemy.h"
 
-
+float rangeMinX, rangeMinY, rangeMinZ;
+float rangeMaxX, rangeMaxY, rangeMaxZ;
 
 void enemy_think(Entity *self)
 {
@@ -13,12 +14,12 @@ void enemy_think(Entity *self)
 
 	if (ed->enemy_last_attack + ed->reloadTime < SDL_GetTicks())
 	{
-		Entity *attack = projectile_spawn(self->position, "singlebullet", ENEMY_PROJECTILE);
+		Entity *attack = projectile_spawn(self->position, "singlebullet", ENEMY_PROJECTILE, SINGLE);
 		ed->enemy_last_attack = SDL_GetTicks();
 	}
 
 	//slog("%f", self->position.y);
-	if ((self->position.x <= -200.0) || (self->position.x >= 200.0))
+	if ((self->position.x <= -60.0) || (self->position.x >= 60.0))
 	{
 		slog("Enemy dies.");
 		enemy_die(self);
@@ -56,7 +57,7 @@ Entity *enemy_spawn(Vector3D position, const char *modelName)
 		gf3d_entity_free(ent);
 		return NULL;
 	}
-	ed->reloadTime = 500;
+
 	ent->data = (void*)ed;
 	ent->model = gf3d_model_load(modelName);
 	vector3d_copy(ent->position, position);
@@ -68,7 +69,29 @@ Entity *enemy_spawn(Vector3D position, const char *modelName)
 	ent->collider.origin = position;
 	ent->free = enemy_die;
 
+	ed->reloadTime = 1000;
+	ed->damage = 1;
+	ent->damage = ed->damage;
+	ed->health = 3;
+	ent->health = ent->health;
+
 
 	slog("Enemy lives.");
 	return ent;
+}
+
+void enemy_spawner(int number, const char *modelName)
+{
+	srand((unsigned)time(NULL) % 1000);
+	for (int i = 0; i < number; i++)
+	{
+		rangeMinX = gfc_random() * -20.0f;
+		rangeMaxX = gfc_random() * 40.0f;
+		rangeMinY = gfc_random() * -360.0f;
+		rangeMaxY = gfc_random() * 60.0f;
+		rangeMinZ = gfc_random() * -10.0f;
+		rangeMaxZ = gfc_random() * 10.0f;
+		Entity *enemy = enemy_spawn(vector3d(rangeMinX + rangeMaxX, rangeMinY + rangeMaxY, rangeMinZ + rangeMaxZ), modelName);
+		slog("Enemy collider radius: %f", enemy->collider.radius);
+	}
 }

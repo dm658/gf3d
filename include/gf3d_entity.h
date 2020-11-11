@@ -47,10 +47,13 @@ typedef struct Entity_S
 	Matrix4		modelMatrix;
 	EntityType  entityType;
 	TextWord	name;
+	int			health;
+	int			damage;
 	void		(*update)(struct Entity_S *self);
 	void		(*think)(struct Entity_S *self);
 	void		(*touch)(struct Entity_S *self, struct Entity_S *other);
-	void		(*damage)(struct Entity_S *self, struct Entity_S *other, float damage);
+	//void		(*damage)(struct Entity_S *self, struct Entity_S *other, int damage);
+	//void		(*health)(struct Entity_S *self, struct Entity_S *other, int health);
 	void		(*die)(struct Entity_S *self);
 	void		(*free)(struct Entity_S *self);
 	Uint8		delay;

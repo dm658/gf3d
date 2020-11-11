@@ -3,6 +3,8 @@
 #include "pickup.h"
 
 Matrix4 modelRotateZ;
+float rangeMinX, rangeMinY, rangeMinZ;
+float rangeMaxX, rangeMaxY, rangeMaxZ;
 
 void pickup_think(Entity *self)
 {
@@ -64,8 +66,25 @@ Entity *pickup_spawn(Vector3D position, const char *modelName, EntityType type)
 	ent->absorbCollider.radius = 1.0f;
 	ent->absorbCollider.origin = position;
 	ent->free = pickup_despawn;
+	ent->health = 10;
 
 
 	slog("Pickup lives.");
 	return ent;
+}
+
+void pickup_spawner(int number, const char *modelName, EntityType pickupType)
+{
+	srand((unsigned)time(NULL) % 1000);
+	for (int i = 0; i < number; i++)
+	{
+		rangeMinX = gfc_random() * -20.0f;
+		rangeMaxX = gfc_random() * 40.0f;
+		rangeMinY = gfc_random() * -360.0f;
+		rangeMaxY = gfc_random() * 60.0f;
+		rangeMinZ = gfc_random() * -10.0f;
+		rangeMaxZ = gfc_random() * 10.0f;
+		Entity *pickup = pickup_spawn(vector3d(rangeMinX + rangeMaxX, rangeMinY + rangeMaxY, rangeMinZ + rangeMaxZ), modelName, pickupType);
+		slog("Enemy collider radius: %f", pickup->collider.radius);
+	}
 }

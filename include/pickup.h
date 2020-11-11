@@ -14,5 +14,6 @@ typedef struct
 void pickup_think(Entity *self);
 void pickup_despawn(Entity *self);
 Entity *pickup_spawn(Vector3D position, const char *modelName, EntityType type);
+void pickup_spawner(int number, const char *modelName, EntityType pickup);
 
 #endif
