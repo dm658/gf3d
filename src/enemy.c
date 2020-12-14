@@ -65,7 +65,7 @@ Entity *enemy_spawn(Vector3D position, const char *modelName)
 	ent->think = enemy_think;
 	ent->entityType = ENEMY;
 	gfc_word_cpy(ent->name, "Enemy");
-	ent->collider.radius = 2.0f;
+	ent->collider.radius = 4.0f;
 	ent->collider.origin = position;
 	ent->free = enemy_die;
 

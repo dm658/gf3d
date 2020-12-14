@@ -144,16 +144,57 @@ void gf3d_entity_update(Entity *self)
 	if (!self->update) return; //no think function to call
 	self->update(self);
 }
-/*
-int gf3d_entity_collision_test(Entity *self)
+
+Entity *get_destructable_object(Entity *e1, Entity *e2)
 {
-	int i;
-	for ()
+	if (e1->entityType != PLAYER)
 	{
-		
+		return e1;
+	}
+	else
+	{
+		return e2;
 	}
 }
-*/
+
+Vector3D get_pickup_tracking(Entity *e1, Entity *e2, float trackingSpeed)
+{
+	Entity *pickup;
+	Entity *player;
+	if ((e1->entityType == PLAYER) && (e2->entityType == PICKUP)) { pickup = e2; player = e1; }
+	if ((e2->entityType == PLAYER) && (e1->entityType == PICKUP)) { pickup = e1; player = e2; }
+
+	if (pickup->position.x > player->position.x)
+	{
+		pickup->position.x -= trackingSpeed;
+	}
+	if (pickup->position.x < player->position.x)
+	{
+		pickup->position.x += trackingSpeed;
+	}
+	if (pickup->position.z > player->position.z)
+	{
+		pickup->position.z -= trackingSpeed;
+	}
+	if (pickup->position.z < player->position.z)
+	{
+		pickup->position.z += trackingSpeed;
+	}
+
+	return pickup->position;
+}
+
+int get_enemy_health(Entity *e1, Entity *e2, float trackingSpeed)
+{
+	Entity *enemy;
+	Entity *player;
+	if ((e1->entityType == PLAYER_PROJECTILE) && (e2->entityType == ENEMY)) { enemy = e2; player = e1; }
+	if ((e2->entityType == PLAYER_PROJECTILE) && (e1->entityType == ENEMY)) { enemy = e1; player = e2; }
+
+	enemy->health = enemy->health - player->damage;
+
+	return enemy->health;
+}
 
 void entity_collide(Entity *e1, Entity *e2)
 {
@@ -172,52 +213,21 @@ void entity_collide(Entity *e1, Entity *e2)
 
 	if (e1->absorbCollider.radius > 0.0 && e2->absorbCollider.radius > 0.0)
 	{
-		if (e2->entityType == PLAYER)
+		float absorbMagnitude = vector3d_magnitude_between(e1->absorbCollider.origin, e2->absorbCollider.origin);
+
+		if ((e1->absorbCollider.radius + e2->absorbCollider.radius) > absorbMagnitude)
 		{
-			if ((e1->entityType == PICKUP_HEALTH) || (e1->entityType == PICKUP_ARMOR) || (e1->entityType == PICKUP_SUPPORT))
+			if (e2->entityType == PLAYER)
 			{
-				if (e1->position.x > e2->position.x)
-				{
-					e1->position.x -= 0.2;
-				}
-				if (e1->position.x < e2->position.x)
-				{
-					e1->position.x += 0.2;
-				}
-				if (e1->position.z > e2->position.z)
-				{
-					e1->position.z -= 0.2;
-				}
-				if (e1->position.z < e2->position.z)
-				{
-					e1->position.z += 0.2;
-				}
+				e1->position = get_pickup_tracking(e1, e2, 0.2);
+				return;
+			}
+			if (e1->entityType == PLAYER)
+			{
+				e2->position = get_pickup_tracking(e1, e2, 0.2);
+				return;
 			}
 		}
-		
-		if (e1->entityType == PLAYER)
-		{
-			if ((e2->entityType == PICKUP_HEALTH) || (e2->entityType == PICKUP_ARMOR) || (e2->entityType == PICKUP_SUPPORT))
-			{
-				if (e2->position.x > e1->position.x)
-				{
-					e2->position.x -= 0.2;
-				}
-				if (e2->position.x < e1->position.x)
-				{
-					e2->position.x += 0.2;
-				}
-				if (e2->position.z > e1->position.z)
-				{
-					e2->position.z -= 0.2;
-				}
-				if (e2->position.z < e1->position.z)
-				{
-					e2->position.z += 0.2;
-				}
-			}
-		}
-		
 	}
 
 	if ((e1->collider.radius + e2->collider.radius) > magnitude)
@@ -234,13 +244,7 @@ void entity_collide(Entity *e1, Entity *e2)
 		}
 
 		//Player shooting
-		if ((e1->entityType == PLAYER_PROJECTILE) && (e2->entityType == PLAYER))
-		{
-			//slog("Player shoots projectile.");
-			//slog("Projectile %s hit ent %s", e1->name, e2->name);
-			return;
-		}
-		if ((e2->entityType == PLAYER_PROJECTILE) && (e1->entityType == PLAYER))
+		if (((e1->entityType == PLAYER_PROJECTILE) && (e2->entityType == PLAYER)) || ((e2->entityType == PLAYER_PROJECTILE) && (e1->entityType == PLAYER)))
 		{
 			//slog("Player shoots projectile.");
 			//slog("Projectile %s hit ent %s", e1->name, e2->name);
@@ -248,53 +252,49 @@ void entity_collide(Entity *e1, Entity *e2)
 		}
 
 		//Enemy shooting
-		if ((e1->entityType == ENEMY_PROJECTILE) && (e2->entityType == ENEMY))
-		{
-			return;
-		}
-		if ((e2->entityType == ENEMY_PROJECTILE) && (e1->entityType == ENEMY))
+		if (((e1->entityType == ENEMY_PROJECTILE) && (e2->entityType == ENEMY)) || ((e2->entityType == ENEMY_PROJECTILE) && (e1->entityType == ENEMY)))
 		{
 			return;
 		}
 
-		if ((e1->entityType == PICKUP_HEALTH) || (e1->entityType == PICKUP_ARMOR) || (e1->entityType == PICKUP_SUPPORT))
+		if (e1->entityType == PICKUP)
 		{
 			if (e2->entityType == PLAYER)
 			{
 				slog("Player picked up item.");
-				if (e1->entityType == PICKUP_HEALTH)
+				if (e1->subType == PICKUP_HEALTH)
 				{
 					e2->health += e1->health;
 					gf3d_entity_free(e1);
 				}
-				if (e2->entityType == PICKUP_ARMOR)
+				if (e2->subType == PICKUP_ARMOR)
 				{
 					e2->health += 20;
 					gf3d_entity_free(e1);
 				}
-				if (e1->entityType == PICKUP_SUPPORT)
+				if (e1->subType == PICKUP_SUPPORT)
 				{
 					gf3d_entity_free(e1);
 				}
 			}
 			return;
 		}
-		if ((e2->entityType == PICKUP_HEALTH) || (e2->entityType == PICKUP_ARMOR) || (e2->entityType == PICKUP_SUPPORT))
+		if (e2->entityType == PICKUP)
 		{
 			if (e1->entityType == PLAYER)
 			{
 				slog("Player picked up item.");
-				if (e2->entityType == PICKUP_HEALTH)
+				if (e2->subType == PICKUP_HEALTH)
 				{
 					e1->health += e2->health;
 					gf3d_entity_free(e2);
 				}
-				if (e2->entityType == PICKUP_ARMOR)
+				if (e2->subType == PICKUP_ARMOR)
 				{
 					e1->health += 20;
 					gf3d_entity_free(e2);
 				}
-				if (e2->entityType == PICKUP_SUPPORT)
+				if (e2->subType == PICKUP_SUPPORT)
 				{
 					gf3d_entity_free(e2);
 				}

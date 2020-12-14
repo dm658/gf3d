@@ -15,6 +15,9 @@ typedef struct
 	int user_last_click;
 	char *primaryFire;
 	char *secondaryFire;
+	int jackProficency;
+	int tankProficency;
+	int thiefProficency;
 	ProjectileType primaryType;
 	ProjectileType secondaryType;
 }PlayerData;
@@ -80,7 +83,7 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 3;
 			ent->collider.radius = 0.5f;
-			ent->absorbCollider.radius = 5.0f;
+			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "singlebullet";
 			pd->secondaryFire = "round";
 
@@ -95,7 +98,7 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 0;
 			ent->collider.radius = 1.0f;
-			ent->absorbCollider.radius = 5.0f;
+			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "doublebullet";
 			pd->secondaryFire = "shield";
 
@@ -110,7 +113,7 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 3;
 			ent->collider.radius = 0.25f;
-			ent->absorbCollider.radius = 5.0f;
+			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "arrow";
 			pd->secondaryFire = "impact";
 
@@ -184,18 +187,18 @@ void player_think(Entity *self)
 		}
 	}
 
-	if (keys[SDL_SCANCODE_X])
-	{
-		self->rotation.x += 0.01;
-	}
-	if (keys[SDL_SCANCODE_Y])
-	{
-		self->rotation.y += 0.01;
-	}
-	if (keys[SDL_SCANCODE_Z])
-	{
-		self->rotation.z += 0.01;
-	}
 	vector3d_copy(self->collider.origin, self->position);
 	vector3d_copy(self->absorbCollider.origin, self->position);
+}
+
+void proficiency_system(Entity *self)
+{
+	PlayerData *pd = (PlayerData *)self->data;
+
+
+}
+
+void get_hit()
+{
+
 }

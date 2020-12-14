@@ -8,12 +8,12 @@ typedef struct
 	char *modelName;
 	int health;
 	int damage;
-	EntityType pickupType;
+	EntitySubType pickupType;
 }PickupData;
 
 void pickup_think(Entity *self);
 void pickup_despawn(Entity *self);
-Entity *pickup_spawn(Vector3D position, const char *modelName, EntityType type);
-void pickup_spawner(int number, const char *modelName, EntityType pickup);
+Entity *pickup_spawn(Vector3D position, const char *modelName, EntitySubType type);
+void pickup_spawner(int number, const char *modelName, EntitySubType pickup);
 
 #endif

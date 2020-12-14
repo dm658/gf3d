@@ -8,7 +8,7 @@ float rangeMaxX, rangeMaxY, rangeMaxZ;
 
 void pickup_think(Entity *self)
 {
-	self->position.y += 0.2;
+	self->position.y += 0.6;
 	vector3d_rotate_about_z(&self->rotation, 1.0);
 	vector3d_copy(self->collider.origin, self->position);
 	vector3d_copy(self->absorbCollider.origin, self->position);
@@ -36,7 +36,7 @@ void pickup_despawn(Entity *self)
 }
 
 
-Entity *pickup_spawn(Vector3D position, const char *modelName, EntityType type)
+Entity *pickup_spawn(Vector3D position, const char *modelName, EntitySubType type)
 {
 	PickupData *pd;
 	Entity *ent;
@@ -59,11 +59,11 @@ Entity *pickup_spawn(Vector3D position, const char *modelName, EntityType type)
 	slog("Pickup Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = pickup_think;
 	pd->pickupType = type;
-	ent->entityType = type;
+	ent->entityType = PICKUP;
 	gfc_word_cpy(ent->name, "Pickup");
 	ent->collider.radius = 0.5f;
 	ent->collider.origin = position;
-	ent->absorbCollider.radius = 1.0f;
+	ent->absorbCollider.radius = 15.0f;
 	ent->absorbCollider.origin = position;
 	ent->free = pickup_despawn;
 	ent->health = 10;
@@ -73,7 +73,7 @@ Entity *pickup_spawn(Vector3D position, const char *modelName, EntityType type)
 	return ent;
 }
 
-void pickup_spawner(int number, const char *modelName, EntityType pickupType)
+void pickup_spawner(int number, const char *modelName, EntitySubType pickupType)
 {
 	srand((unsigned)time(NULL) % 1000);
 	for (int i = 0; i < number; i++)

@@ -9,6 +9,7 @@
 #include "gf3d_pipeline.h"
 #include "gf3d_swapchain.h"
 #include "gf3d_model.h"
+#include "gf3d_sprite.h"
 #include "gf3d_camera.h"
 #include "gf3d_texture.h"
 #include "gf3d_entity.h"
@@ -22,13 +23,18 @@ int main(int argc,char *argv[])
     int done = 0;
     int a;
     Uint8 validate = 1;
+	float frame = 0;
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
 	int entityLoadBuffer = 0, entityLoadBuffer1 = 0, entityLoadBuffer2 = 0, entityLoadBuffer3 = 0, entityLoadBuffer4 = 0;
-	Model *reference;
+	Model *reference = NULL;
+	Sprite *hud = NULL;
+	Sprite *mouse = NULL;
 	Vector3D playerCurrent;
 	Entity *player1, *enemy, *armor, *health, *support, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
+	int mouseX, mouseY;
+	Uint32 mouseFrame = 0;
     
     for (a = 1; a < argc;a++)
     {
@@ -51,7 +57,12 @@ int main(int argc,char *argv[])
 	slog_sync();
 
 	gf3d_entity_init(8192);
-	//skybox = gf3d_entity_new();
+	gf3d_sprite_manager_init(16, gf3d_swapchain_get_chain_length(), gf3d_vgraphics_get_default_logical_device());
+
+	// sprite loads
+	mouse = gf3d_sprite_load("images/reticle.png", -1, -1, 0);
+	hud = gf3d_sprite_load("images/hud.png", -1, -1, 0);
+	slog("Hud is %p", &hud);
     
     // main game loop
     slog("gf3d main loop begin");
@@ -86,6 +97,9 @@ int main(int argc,char *argv[])
     {
         SDL_PumpEvents();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
+		SDL_GetMouseState(&mouseX, &mouseY);
+
+
 
 		if (entityLoadBuffer + 10000 < SDL_GetTicks())
 		{
@@ -94,7 +108,7 @@ int main(int argc,char *argv[])
 			pickup_spawner(1, "healthsmall", PICKUP_HEALTH);
 			entityLoadBuffer = SDL_GetTicks();
 		}
-		if (entityLoadBuffer1 + 5000 < SDL_GetTicks())
+		if (entityLoadBuffer1 + 10000 < SDL_GetTicks())
 		{
 			enemy_spawner(1, "rage");
 			pickup_spawner(1, "healthmedium", PICKUP_HEALTH);
@@ -133,14 +147,20 @@ int main(int argc,char *argv[])
 		*/
 
         // configure render command for graphics command pool
-        // for each mesh, get a command and configure it from the pool
-
         bufferFrame = gf3d_vgraphics_render_begin();
-        gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
-            commandBuffer = gf3d_command_rendering_begin(bufferFrame);
+		// for each mesh, get a command and configure it from the pool
+			gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_model_pipeline(), bufferFrame);
+			gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_overlay_pipeline(), bufferFrame);
+
+            commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_model_pipeline());
 				gf3d_entity_draw_all(bufferFrame, commandBuffer);
-                //gf3d_model_draw(model,bufferFrame,commandBuffer,modelMat);
-                //gf3d_model_draw(model2,bufferFrame,commandBuffer,modelMat2);
+			gf3d_command_rendering_end(commandBuffer);
+			
+			// 2D overlay rendering
+			commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_overlay_pipeline());
+				gf3d_sprite_draw(hud, vector2d(0,0), vector2d(2,2), 0, bufferFrame, commandBuffer);
+				gf3d_sprite_draw(mouse, vector2d(mouseX - 16, mouseY - 16), vector2d(1, 1), 0, bufferFrame, commandBuffer);
+					
                 
             gf3d_command_rendering_end(commandBuffer);
             

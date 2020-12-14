@@ -27,10 +27,15 @@ typedef enum
 	PLAYER_PROJECTILE,
 	ENEMY_PROJECTILE,
 	MOVING_BODY,
+	PICKUP
+}EntityType;
+
+typedef enum
+{
 	PICKUP_HEALTH,
 	PICKUP_ARMOR,
 	PICKUP_SUPPORT
-}EntityType;
+}EntitySubType;
 
 
 typedef struct Entity_S
@@ -46,14 +51,13 @@ typedef struct Entity_S
 	struct Entity_S *owner;
 	Matrix4		modelMatrix;
 	EntityType  entityType;
+	EntitySubType subType;
 	TextWord	name;
 	int			health;
 	int			damage;
 	void		(*update)(struct Entity_S *self);
 	void		(*think)(struct Entity_S *self);
 	void		(*touch)(struct Entity_S *self, struct Entity_S *other);
-	//void		(*damage)(struct Entity_S *self, struct Entity_S *other, int damage);
-	//void		(*health)(struct Entity_S *self, struct Entity_S *other, int health);
 	void		(*die)(struct Entity_S *self);
 	void		(*free)(struct Entity_S *self);
 	Uint8		delay;
@@ -78,6 +82,9 @@ void entity_collision_check_all(Entity *self);
 void gf3d_entity_think_all();
 
 void gf3d_entity_free(Entity *entity);
-/**Go to game.c and follow the rest from 52:02 in the video*/
+
+Entity *get_destructable_object(Entity *e1, Entity *e2);
+
+Vector3D get_pickup_tracking(Entity *e1, Entity *e2, float trackingSpeed);
 
 #endif

@@ -23,6 +23,7 @@
 #include "gf3d_pipeline.h"
 #include "gf3d_commands.h"
 #include "gf3d_texture.h"
+#include "gf3d_sprite.h"
 
 
 typedef struct
@@ -59,8 +60,9 @@ typedef struct
     
     VkSemaphore                 imageAvailableSemaphore;
     VkSemaphore                 renderFinishedSemaphore;
-        
-    Pipeline                   *pipe;
+    //Pipeline                   *pipe;
+	Pipeline                   *model_pipe;     /**<for rendering 3d*/
+	Pipeline                   *overlay_pipe;   /**<for rendering 2d*/
     
     Command                 *   graphicsCommandPool; 
     UniformBufferObject         ubo;
@@ -140,15 +142,16 @@ void gf3d_vgraphics_init(
     gf3d_texture_init(1024);
     
     gf3d_pipeline_init(4);// how many different rendering pipelines we need
-    gf3d_vgraphics.pipe = gf3d_pipeline_basic_model_create(device,"shaders/vert.spv","shaders/frag.spv",gf3d_vgraphics_get_view_extent(),1024);
+    gf3d_vgraphics.model_pipe = gf3d_pipeline_basic_model_create(device,"shaders/vert.spv","shaders/frag.spv",gf3d_vgraphics_get_view_extent(),1024);
+	gf3d_vgraphics.overlay_pipe = gf3d_pipeline_basic_sprite_create(device, "shaders/sprite_vert.spv", "shaders/sprite_frag.spv", gf3d_vgraphics_get_view_extent(), 1024);
     gf3d_model_manager_init(1024,gf3d_swapchain_get_swap_image_count(),device);
 
 	gf3d_command_system_init(8 * gf3d_swapchain_get_swap_image_count(), device);
 
-    gf3d_vgraphics.graphicsCommandPool = gf3d_command_graphics_pool_setup(gf3d_swapchain_get_swap_image_count(),gf3d_vgraphics.pipe);
+    gf3d_vgraphics.graphicsCommandPool = gf3d_command_graphics_pool_setup(gf3d_swapchain_get_swap_image_count());
 
     gf3d_swapchain_create_depth_image();
-    gf3d_swapchain_setup_frame_buffers(gf3d_vgraphics.pipe);
+    gf3d_swapchain_setup_frame_buffers(gf3d_vgraphics.model_pipe);
     
     gf3d_vgraphics_semaphores_create();
     
@@ -176,6 +179,7 @@ void gf3d_vgraphics_setup(
         return;
     }
     atexit(SDL_Quit);
+	SDL_ShowCursor(SDL_DISABLE);
     if (fullscreen)
     {
         if (renderWidth == 0)
@@ -193,7 +197,6 @@ void gf3d_vgraphics_setup(
                              SDL_WINDOWPOS_UNDEFINED,
                              renderWidth, renderHeight,
                              flags);
-	slog_sync();
 
     if (!gf3d_vgraphics.main_window)
     {
@@ -203,10 +206,8 @@ void gf3d_vgraphics_setup(
         return;
     }
 
-	slog_sync();
     // instance extension configuration
     gf3d_extensions_instance_init();
-	slog_sync();
     
     // get the extensions that are needed for rendering to an SDL Window
     SDL_Vulkan_GetInstanceExtensions(gf3d_vgraphics.main_window, &(gf3d_vgraphics.sdl_extension_count), NULL);
@@ -228,7 +229,6 @@ void gf3d_vgraphics_setup(
         exit(0);
         return;
     }
-	slog_sync();
 
     // setup app info
     gf3d_vgraphics.vk_app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -278,7 +278,6 @@ void gf3d_vgraphics_setup(
         return;
     }
     
-	slog_sync();
     if (enableValidation)
     {
         gf3d_vgraphics_setup_debug();
@@ -308,8 +307,6 @@ void gf3d_vgraphics_setup(
     // create a surface for the window
     SDL_Vulkan_CreateSurface(gf3d_vgraphics.main_window, gf3d_vgraphics.vk_instance, &gf3d_vgraphics.surface);
     // setup a queue for rendering calls
-
-	slog_sync();
         
     // setup queues
     gf3d_vqueues_init(gf3d_vgraphics.gpu,gf3d_vgraphics.surface);
@@ -328,8 +325,6 @@ void gf3d_vgraphics_setup(
     }
     gf3d_vgraphics.logicalDeviceCreated = true;
 
-	slog_sync();
-    
 }
 
 void gf3d_vgraphics_close()
@@ -533,7 +528,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL gf3d_vgraphics_debug_parse(
 {
     //setting this up to always log the message, but this can be adjusted later
     slog("VULKAN DEBUG [%i]:%s",messageSeverity,pCallbackData->pMessage);
-	slog_sync();
     return VK_FALSE;
 }
 
@@ -686,9 +680,21 @@ void gf3d_vgraphics_rotate_camera(float degrees)
 
 }
 
+/*
 Pipeline *gf3d_vgraphics_get_graphics_pipeline()
 {
     return gf3d_vgraphics.pipe;
+}
+*/
+
+Pipeline *gf3d_vgraphics_get_graphics_model_pipeline()
+{
+	return gf3d_vgraphics.model_pipe;
+}
+
+Pipeline *gf3d_vgraphics_get_graphics_overlay_pipeline()
+{
+	return gf3d_vgraphics.overlay_pipe;
 }
 
 Command *gf3d_vgraphics_get_graphics_command_pool()
