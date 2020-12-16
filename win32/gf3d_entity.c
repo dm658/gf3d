@@ -184,17 +184,21 @@ Vector3D get_pickup_tracking(Entity *e1, Entity *e2, float trackingSpeed)
 	return pickup->position;
 }
 
-int get_enemy_health(Entity *e1, Entity *e2, float trackingSpeed)
+/*
+int get_health(Entity *e1, Entity *e2)
 {
-	Entity *enemy;
-	Entity *player;
-	if ((e1->entityType == PLAYER_PROJECTILE) && (e2->entityType == ENEMY)) { enemy = e2; player = e1; }
-	if ((e2->entityType == PLAYER_PROJECTILE) && (e1->entityType == ENEMY)) { enemy = e1; player = e2; }
+	Entity *target;
+	Entity *attack;
+	if ((e1->entityType == PLAYER_PROJECTILE) && (e2->entityType == ENEMY)) { target = e2; attack = e1; }
+	if ((e2->entityType == PLAYER_PROJECTILE) && (e1->entityType == ENEMY)) { target = e1; attack = e2; }
+	if ((e1->entityType == ENEMY_PROJECTILE) && (e2->entityType == PLAYER)) { target = e2; attack = e1; }
+	if ((e2->entityType == ENEMY_PROJECTILE) && (e1->entityType == PLAYER)) { target = e1; attack = e2; }
 
-	enemy->health = enemy->health - player->damage;
+	target->health = target->health - attack->damage;
 
-	return enemy->health;
+	return target->health;
 }
+*/
 
 void entity_collide(Entity *e1, Entity *e2)
 {

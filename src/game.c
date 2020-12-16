@@ -13,6 +13,7 @@
 #include "gf3d_camera.h"
 #include "gf3d_texture.h"
 #include "gf3d_entity.h"
+#include "gf3d_ui.h"
 #include "player.h"
 #include "skybox.h"
 #include "enemy.h"
@@ -29,10 +30,9 @@ int main(int argc,char *argv[])
     VkCommandBuffer commandBuffer;
 	int entityLoadBuffer = 0, entityLoadBuffer1 = 0, entityLoadBuffer2 = 0, entityLoadBuffer3 = 0, entityLoadBuffer4 = 0;
 	Model *reference = NULL;
-	Sprite *hud = NULL;
-	Sprite *mouse = NULL;
 	Vector3D playerCurrent;
 	Entity *player1, *enemy, *armor, *health, *support, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
+	UI *mouse, *hud, *button;
 	int mouseX, mouseY;
 	Uint32 mouseFrame = 0;
     
@@ -58,15 +58,25 @@ int main(int argc,char *argv[])
 
 	gf3d_entity_init(8192);
 	gf3d_sprite_manager_init(16, gf3d_swapchain_get_chain_length(), gf3d_vgraphics_get_default_logical_device());
+	slog("Sprites initiated.");
+	gf3d_ui_init(16);
+	slog("UI initiated.");
 
-	// sprite loads
-	mouse = gf3d_sprite_load("images/reticle.png", -1, -1, 0);
-	hud = gf3d_sprite_load("images/hud.png", -1, -1, 0);
-	slog("Hud is %p", &hud);
+	//mouse = gf3d_sprite_load("images/reticle.png", -1, -1, 0);
+	//hud = gf3d_sprite_load("images/hud.png", -1, -1, 0);
+	//slog("Hud is %p", &hud);
     
     // main game loop
     slog("gf3d main loop begin");
 
+	// sprite loads
+	SDL_GetMouseState(&mouseX, &mouseY);
+	//hud = gf3d_ui_create(vector2d(0, 0), "images/hud.png", -1, -1, 0);
+	button = gf3d_create_button(vector2d(100, 50), "images/button.png", -1, -1, 0);
+	mouse = gf3d_create_reticle(vector2d(mouseX - 16, mouseY - 16), "images/reticle.png", -1, -1, 0);
+
+
+	// model loads
 	player1 = player_spawn(vector3d(0, -10, 0), "baseship", PLAYER_JACK);
 	if (player1->model->mesh == NULL)
 	{
@@ -134,6 +144,7 @@ int main(int argc,char *argv[])
 		}
 
 		gf3d_entity_think_all();
+		gf3d_ui_think_all();
         //update game things here
         
         //gf3d_vgraphics_rotate_camera(0.001);
@@ -158,10 +169,8 @@ int main(int argc,char *argv[])
 			
 			// 2D overlay rendering
 			commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_overlay_pipeline());
-				gf3d_sprite_draw(hud, vector2d(0,0), vector2d(2,2), 0, bufferFrame, commandBuffer);
-				gf3d_sprite_draw(mouse, vector2d(mouseX - 16, mouseY - 16), vector2d(1, 1), 0, bufferFrame, commandBuffer);
+				gf3d_ui_draw_all(bufferFrame, commandBuffer);
 					
-                
             gf3d_command_rendering_end(commandBuffer);
             
         gf3d_vgraphics_render_end(bufferFrame);

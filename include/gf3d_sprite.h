@@ -43,6 +43,8 @@ typedef struct
 	VkBuffer                   *uniformBuffers;         /**<handles for the UBO*/
 	VkDeviceMemory             *uniformBuffersMemory;   /**<memory handle for the UBO memory*/
 	Uint32                      uniformBufferCount;     /**<how many UBOs for the sprite*/
+	//void(*think)(struct Entity_S *self);
+	//void(*touch)(struct Entity_S *self, struct Entity_S *other);
 }Sprite;
 
 /**

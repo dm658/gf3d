@@ -9,14 +9,51 @@ typedef struct
 	int health;
 	Entity owner;
 	int damage;
+	Vector3D destination;
 }ProjectileData;
 
 void projectile_think(Entity *self)
 {
+	ProjectileData *pd = NULL;
+	if (!self)
+	{
+		return;
+	}
+	pd = (ProjectileData *)self->data;
+	if (!pd)
+	{
+		return;
+	}
+
+	float trackingSpeed = 1.0;
+
 	switch (self->entityType)
 	{
 		case PLAYER_PROJECTILE:
-			self->position.y -= 6.0;
+			if (self->position.x > pd->destination.x)
+			{
+				self->position.x -= trackingSpeed;
+			}
+			if (self->position.x < pd->destination.x)
+			{
+				self->position.x += trackingSpeed;
+			}
+			if (self->position.z > pd->destination.z)
+			{
+				self->position.z -= trackingSpeed;
+			}
+			if (self->position.z < pd->destination.z)
+			{
+				self->position.z += trackingSpeed;
+			}
+			if (self->position.y > pd->destination.y)
+			{
+				self->position.y -= pd->velocity;
+			}
+			if ((self->position.x == pd->destination.x) && (self->position.y == pd->destination.y) && (self->position.z == pd->destination.z))
+			{
+				projectile_die(self);
+			}
 			break;
 		case ENEMY_PROJECTILE:
 			self->position.y += 3.0;
@@ -29,9 +66,9 @@ void projectile_think(Entity *self)
 
 	vector3d_copy(self->collider.origin, self->position);
 	//slog("%f", self->position.y);
-	if ((self->position.y <= -300.0) || (self->position.y >= 300.0))
+	if ((self->position.y <= -240.0) || (self->position.y >= 50.0))
 	{
-		slog("Projectile despawn");
+		//slog("Projectile despawn");
 		projectile_die(self);
 	}
 
@@ -67,11 +104,15 @@ Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType ty
 		gf3d_entity_free(ent);
 		return NULL;
 	}
+	int mouseX, mouseY;
+	SDL_GetMouseState(&mouseX, &mouseY);
+
+	pd->destination = vector3d(700 - mouseX, -250, 400 - mouseY);
 	ent->data = (void*)pd;
 	ent->model = gf3d_model_load(modelName);
 	vector3d_copy(ent->position, position);
 	ent->think = projectile_think;
-	ent->free = projectile_think;
+	ent->free = projectile_die;
 	ent->entityType = type;
 	gfc_word_cpy(ent->name, "Projectile");
 	ent->collider.origin = position;

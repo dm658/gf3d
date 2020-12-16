@@ -37,8 +37,8 @@ void player_die(Entity *self)
 
 Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playerClass)
 {
-	PlayerData *pd;
-	Entity *ent;
+	PlayerData *pd = NULL;
+	Entity *ent = NULL;
 	TextWord shipClass;
 	gfc_word_cpy(shipClass, modelName);
 	slog("Player class is %s", shipClass);
