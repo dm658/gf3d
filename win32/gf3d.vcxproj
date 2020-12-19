@@ -118,6 +118,7 @@
     <ClInclude Include="..\include\pickup.h" />
     <ClInclude Include="..\include\projectile.h" />
     <ClInclude Include="..\include\skybox.h" />
+    <ClInclude Include="..\include\window_manager.h" />
     <ClInclude Include="gf3d_entity.h" />
     <ClInclude Include="player.h" />
   </ItemGroup>
@@ -158,6 +159,7 @@
     <ClCompile Include="..\src\pickup.c" />
     <ClCompile Include="..\src\projectile.c" />
     <ClCompile Include="..\src\skybox.c" />
+    <ClCompile Include="..\src\window_manager.c" />
     <ClCompile Include="gf3d_entity.c" />
     <ClCompile Include="player.c" />
   </ItemGroup>

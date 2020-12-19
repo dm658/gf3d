@@ -60,6 +60,7 @@ Entity *enemy_spawn(Vector3D position, const char *modelName)
 
 	ent->data = (void*)ed;
 	ent->model = gf3d_model_load(modelName);
+	ent->model->frameCount = 1;
 	vector3d_copy(ent->position, position);
 	slog("Enemy Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = enemy_think;
@@ -87,8 +88,8 @@ void enemy_spawner(int number, const char *modelName)
 	{
 		rangeMinX = gfc_random() * -20.0f;
 		rangeMaxX = gfc_random() * 40.0f;
-		rangeMinY = gfc_random() * -360.0f;
-		rangeMaxY = gfc_random() * 60.0f;
+		rangeMinY = gfc_random() * -300.0f;
+		rangeMaxY = gfc_random() * -60.0f;
 		rangeMinZ = gfc_random() * -10.0f;
 		rangeMaxZ = gfc_random() * 10.0f;
 		Entity *enemy = enemy_spawn(vector3d(rangeMinX + rangeMaxX, rangeMinY + rangeMaxY, rangeMinZ + rangeMaxZ), modelName);

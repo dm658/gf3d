@@ -63,6 +63,7 @@ Entity *gf3d_entity_new()
 		if (!gf3d_entity.entity_list[i]._inuse)
 		{
 			gf3d_entity.entity_list[i]._inuse = 1;
+			//gf3d_entity.entity_list[i].model->frameCount = 2;
 			gfc_matrix_identity(gf3d_entity.entity_list[i].modelMatrix);
 			slog("Entity %s is ready.", gf3d_entity.entity_list[i].name);
 			return &gf3d_entity.entity_list[i];
@@ -98,7 +99,7 @@ void gf3d_entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandB
 {
 	if (!self) return;
 	gfc_matrix_make_translation(self->modelMatrix, self->position);
-	gf3d_model_draw(self->model, bufferFrame, commandBuffer, self->modelMatrix);
+	gf3d_model_draw(self->model, bufferFrame, commandBuffer, self->modelMatrix, 0);
 }
 
 void gf3d_entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer)

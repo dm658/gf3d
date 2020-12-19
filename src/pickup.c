@@ -15,7 +15,7 @@ void pickup_think(Entity *self)
 	//gf3d_entity_update(self);
 
 	//slog("%f", self->position.y);
-	if ((self->position.y <= -300.0) || (self->position.y >= 10.0))
+	if ((self->position.y <= -300.0) || (self->position.y >= 5.0))
 	{
 		pickup_despawn(self);
 	}
@@ -55,6 +55,7 @@ Entity *pickup_spawn(Vector3D position, const char *modelName, EntitySubType typ
 	}
 	ent->data = (void*)pd;
 	ent->model = gf3d_model_load(modelName);
+	ent->model->frameCount = 1;
 	vector3d_copy(ent->position, position);
 	slog("Pickup Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = pickup_think;
@@ -80,8 +81,8 @@ void pickup_spawner(int number, const char *modelName, EntitySubType pickupType)
 	{
 		rangeMinX = gfc_random() * -20.0f;
 		rangeMaxX = gfc_random() * 40.0f;
-		rangeMinY = gfc_random() * -360.0f;
-		rangeMaxY = gfc_random() * 60.0f;
+		rangeMinY = gfc_random() * -300.0f;
+		rangeMaxY = gfc_random() * -60.0f;
 		rangeMinZ = gfc_random() * -10.0f;
 		rangeMaxZ = gfc_random() * 10.0f;
 		Entity *pickup = pickup_spawn(vector3d(rangeMinX + rangeMaxX, rangeMinY + rangeMaxY, rangeMinZ + rangeMaxZ), modelName, pickupType);

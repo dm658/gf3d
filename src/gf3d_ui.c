@@ -215,8 +215,10 @@ Bool sprite_collide(UI *ui1, UI *ui2)
 {
 	if (ui1->interactable || ui2->interactable)
 	{
-		if ((((ui1->collider.x + ui1->collider.w) < ui2->collider.x) || ((ui2->collider.x + ui2->collider.w) < ui1->collider.x)) ||
-			(((ui1->collider.y + ui1->collider.h) < ui2->collider.y) || ((ui2->collider.y + ui2->collider.h) < ui1->collider.y)))
+		if (((ui1->collider.x + ui1->collider.w) < ui2->collider.x) || 
+			((ui2->collider.x + ui2->collider.w) < ui1->collider.x) ||
+			(((ui1->collider.y + ui1->collider.h) < ui2->collider.y)|| 
+			((ui2->collider.y + ui2->collider.h) < ui1->collider.y)))
 		{
 			return true;
 		}

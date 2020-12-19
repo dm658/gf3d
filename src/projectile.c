@@ -110,6 +110,7 @@ Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType ty
 	pd->destination = vector3d(700 - mouseX, -250, 400 - mouseY);
 	ent->data = (void*)pd;
 	ent->model = gf3d_model_load(modelName);
+	ent->model->frameCount = 1;
 	vector3d_copy(ent->position, position);
 	ent->think = projectile_think;
 	ent->free = projectile_die;

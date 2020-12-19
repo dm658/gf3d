@@ -4,6 +4,7 @@
 #include "gfc_vector.h"
 #include "gfc_matrix.h"
 #include "gfc_types.h"
+#include "gfc_input.h"
 
 #include "gf3d_vgraphics.h"
 #include "gf3d_pipeline.h"
@@ -14,6 +15,7 @@
 #include "gf3d_texture.h"
 #include "gf3d_entity.h"
 #include "gf3d_ui.h"
+#include "window_manager.h"
 #include "player.h"
 #include "skybox.h"
 #include "enemy.h"
@@ -24,6 +26,8 @@ int main(int argc,char *argv[])
     int done = 0;
     int a;
     Uint8 validate = 1;
+	int pause = 1;
+	int start = 0;
 	float frame = 0;
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
@@ -33,6 +37,7 @@ int main(int argc,char *argv[])
 	Vector3D playerCurrent;
 	Entity *player1, *enemy, *armor, *health, *support, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
 	UI *mouse, *hud, *button;
+	Window *mainWindow, *pauseWindow, *editWindow;
 	int mouseX, mouseY;
 	Uint32 mouseFrame = 0;
     
@@ -61,17 +66,17 @@ int main(int argc,char *argv[])
 	slog("Sprites initiated.");
 	gf3d_ui_init(16);
 	slog("UI initiated.");
-
-	//mouse = gf3d_sprite_load("images/reticle.png", -1, -1, 0);
-	//hud = gf3d_sprite_load("images/hud.png", -1, -1, 0);
-	//slog("Hud is %p", &hud);
+	gf3d_window_init(4);
+	slog("Windows initiated.");
+	gfc_input_init("");
+	slog("Inputs initialized.");
     
     // main game loop
     slog("gf3d main loop begin");
 
 	// sprite loads
 	SDL_GetMouseState(&mouseX, &mouseY);
-	//hud = gf3d_ui_create(vector2d(0, 0), "images/hud.png", -1, -1, 0);
+	hud = gf3d_ui_create(vector2d(0, 0), "images/hud.png", -1, -1, 0);
 	button = gf3d_create_button(vector2d(100, 50), "images/button.png", -1, -1, 0);
 	mouse = gf3d_create_reticle(vector2d(mouseX - 16, mouseY - 16), "images/reticle.png", -1, -1, 0);
 
@@ -109,53 +114,49 @@ int main(int argc,char *argv[])
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
 		SDL_GetMouseState(&mouseX, &mouseY);
 
+		gfc_input_update();
 
+		if (pause != 1)
+		{
+			if (entityLoadBuffer + 10000 < SDL_GetTicks())
+			{
+				enemy_spawner(2, "chase");
+				enemy_spawner(2, "rage");
+				pickup_spawner(1, "healthsmall", PICKUP_HEALTH);
+				entityLoadBuffer = SDL_GetTicks();
+			}
+			if (entityLoadBuffer1 + 10000 < SDL_GetTicks())
+			{
+				enemy_spawner(1, "rage");
+				pickup_spawner(1, "healthmedium", PICKUP_HEALTH);
+				entityLoadBuffer1 = SDL_GetTicks();
+			}
+			if (entityLoadBuffer2 + 6000 < SDL_GetTicks())
+			{
+				enemy_spawner(1, "asteroid");
+				pickup_spawner(1, "healthbig", PICKUP_HEALTH);
+				entityLoadBuffer2 = SDL_GetTicks();
+			}
+			if (entityLoadBuffer3 + 18000 < SDL_GetTicks())
+			{
+				enemy_spawner(1, "ring");
+				pickup_spawner(1, "armor", PICKUP_ARMOR);
+				entityLoadBuffer3 = SDL_GetTicks();
+			}
+			if (entityLoadBuffer4 + 18000 < SDL_GetTicks())
+			{
+				enemy_spawner(1, "jeff");
+				pickup_spawner(1, "miniship", PICKUP_SUPPORT);
+				entityLoadBuffer4 = SDL_GetTicks();
+			}
 
-		if (entityLoadBuffer + 10000 < SDL_GetTicks())
-		{
-			enemy_spawner(2, "chase");
-			enemy_spawner(2, "rage");
-			pickup_spawner(1, "healthsmall", PICKUP_HEALTH);
-			entityLoadBuffer = SDL_GetTicks();
+			gf3d_entity_think_all();
+			gf3d_ui_think_all();
 		}
-		if (entityLoadBuffer1 + 10000 < SDL_GetTicks())
-		{
-			enemy_spawner(1, "rage");
-			pickup_spawner(1, "healthmedium", PICKUP_HEALTH);
-			entityLoadBuffer1 = SDL_GetTicks();
-		}
-		if (entityLoadBuffer2 + 6000 < SDL_GetTicks())
-		{
-			enemy_spawner(1, "asteroid");
-			pickup_spawner(1, "healthbig", PICKUP_HEALTH);
-			entityLoadBuffer2 = SDL_GetTicks();
-		}
-		if (entityLoadBuffer3 + 18000 < SDL_GetTicks())
-		{
-			enemy_spawner(1, "ring");
-			pickup_spawner(1, "armor", PICKUP_ARMOR);
-			entityLoadBuffer3 = SDL_GetTicks();
-		}
-		if (entityLoadBuffer4 + 18000 < SDL_GetTicks())
-		{
-			enemy_spawner(1, "jeff");
-			pickup_spawner(1, "miniship", PICKUP_SUPPORT);
-			entityLoadBuffer4 = SDL_GetTicks();
-		}
-
-		gf3d_entity_think_all();
-		gf3d_ui_think_all();
         //update game things here
         
         //gf3d_vgraphics_rotate_camera(0.001);
 		
-		/*
-        gfc_matrix_rotate(
-            modelMat2,
-            modelMat2,
-            0.002,
-            vector3d(0,0,1));
-		*/
 
         // configure render command for graphics command pool
         bufferFrame = gf3d_vgraphics_render_begin();
@@ -174,6 +175,18 @@ int main(int argc,char *argv[])
             gf3d_command_rendering_end(commandBuffer);
             
         gf3d_vgraphics_render_end(bufferFrame);
+
+		if (start == 0)
+		{
+			mainWindow = gf3d_main_create();
+			gf3d_window_draw(mainWindow, bufferFrame, commandBuffer);
+			start = 1;
+			if (gfc_input_key_pressed(" "))
+			{
+				gf3d_window_free(pauseWindow);
+				pause = 0;
+			}
+		}
 
 		playerCurrent = player1->position;
 		if (keys[SDL_SCANCODE_1])
@@ -196,6 +209,26 @@ int main(int argc,char *argv[])
 			player_die(player1);
 			player1 = player_spawn(playerCurrent, "baseship", PLAYER_ROGUE);
 			slog("Thief in the night is ready.");
+		}
+
+		if (pause == 0)
+		{
+			if (gfc_input_key_pressed("TAB"))
+			{
+				pause = pauseSet(pause);
+				slog("Game is paused");
+				pauseWindow = gf3d_pause_create();
+				gf3d_window_draw(pauseWindow, bufferFrame, commandBuffer);
+			}
+		}
+		if (pause == 1)
+		{
+			if (gfc_input_key_pressed("TAB"))
+			{
+				pause = pauseSet(pause);
+				slog("Game resume");
+				gf3d_window_free(pauseWindow);
+			}
 		}
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition

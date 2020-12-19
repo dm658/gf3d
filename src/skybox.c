@@ -29,6 +29,7 @@ Entity *create_skybox(Vector3D position, const char *modelName)
 	}
 
 	ent->model = gf3d_model_load(modelName);
+	ent->model->frameCount = 1;
 	slog("Skybox not positioned.");
 	vector3d_copy(ent->position, position);
 	slog("Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);

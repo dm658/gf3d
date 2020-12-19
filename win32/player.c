@@ -18,6 +18,7 @@ typedef struct
 	int jackProficency;
 	int tankProficency;
 	int thiefProficency;
+	int special;
 	ProjectileType primaryType;
 	ProjectileType secondaryType;
 }PlayerData;
@@ -58,6 +59,7 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 	pd->user_last_click = 0;
 	ent->data = (void*)pd;
 	ent->model = gf3d_model_load(modelName);
+	ent->model->frameCount = 1;
 	vector3d_copy(ent->position, position);
 	slog("Player Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = player_think;
@@ -75,6 +77,7 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 	{
 		case PLAYER_JACK:
 			ent->model = gf3d_model_load("baseship");
+			ent->model->frameCount = 1;
 			pd->reloadTime = 250;
 			pd->health = 6;
 			ent->health = pd->health;
@@ -86,10 +89,12 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "singlebullet";
 			pd->secondaryFire = "round";
+			pd->special = 1;
 
 			break;
 		case PLAYER_KNIGHT:
 			ent->model = gf3d_model_load("tankship");
+			ent->model->frameCount = 1;
 			pd->reloadTime = 500;
 			pd->health = 12;
 			ent->health = pd->health;
@@ -101,10 +106,12 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "doublebullet";
 			pd->secondaryFire = "shield";
+			pd->special = 1;
 
 			break;
 		case PLAYER_ROGUE:
 			ent->model = gf3d_model_load("sharpship");
+			ent->model->frameCount = 1;
 			pd->reloadTime = 100;
 			pd->health = 3;
 			ent->health = pd->health;
@@ -116,10 +123,12 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "arrow";
 			pd->secondaryFire = "impact";
+			pd->special = 1;
 
 			break;
 		default:
 			ent->model = gf3d_model_load(modelName);
+			ent->model->frameCount = 1;
 			slog("No player class loaded.");
 			break;
 	}
@@ -184,6 +193,16 @@ void player_think(Entity *self)
 			slog("Projectile fired. %d", SDL_GetTicks());
 			Entity *secondary = projectile_spawn(self->position, pd->secondaryFire, PLAYER_PROJECTILE, pd->secondaryType);
 			pd->user_last_click = SDL_GetTicks();
+		}
+		if (keys[SDL_SCANCODE_Q])
+		{
+			player_die(self);
+			self->model = gf3d_model_load_animated("baseship_anim", 1, 100);
+			self->model->frameCount = 100;
+			slog("Baseship special attack loaded.");
+			_sleep(4200);
+			self->model = gf3d_model_load("baseship");
+			self->model->frameCount = 1;
 		}
 	}
 
