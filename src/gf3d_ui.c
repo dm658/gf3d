@@ -99,6 +99,7 @@ UI *gf3d_ui_create(Vector2D position, const char *spriteName, int frame_width, i
 	if (!ui)
 	{
 		slog("Failed to spawn a new UI element.");
+		slog_sync();
 		return NULL;
 	}
 	ui->sprite = gf3d_sprite_load(spriteName, frame_width, frame_height, frames_per_line);
@@ -121,6 +122,7 @@ UI *gf3d_create_reticle(Vector2D position, const char *spriteName, int frame_wid
 	if (!ui)
 	{
 		slog("Failed to spawn mouse.");
+		slog_sync();
 		return NULL;
 	}
 	ui->sprite = gf3d_sprite_load(spriteName, frame_width, frame_height, frames_per_line);
@@ -145,6 +147,7 @@ UI *gf3d_create_button(Vector2D position, const char *spriteName, int frame_widt
 	if (!ui)
 	{
 		slog("Failed to spawn button.");
+		slog_sync();
 		return NULL;
 	}
 	ui->sprite = gf3d_sprite_load(spriteName, frame_width, frame_height, frames_per_line);
@@ -216,7 +219,7 @@ void reticle_think(UI *self)
 
 Bool sprite_collide(UI *ui1, UI *ui2)
 {
-	if (ui1->interactable || ui2->interactable)
+	if (ui2->interactable)
 	{
 		if (((ui1->collider.x + ui1->collider.w) < ui2->collider.x) || 
 			((ui2->collider.x + ui2->collider.w) < ui1->collider.x) ||

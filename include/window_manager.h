@@ -43,8 +43,4 @@ void gf3d_edit_update();
 
 void gf3d_window_draw(Window *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
-int pauseSet(int pauseState);
-
-int startGame();
-
 #endif

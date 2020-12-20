@@ -96,7 +96,7 @@ Window *gf3d_pause_create()
 	}
 	w->background = gf3d_ui_create(vector2d(0, 0), "images/pause_screen.png", -1, -1, 0);
 	w->type = PAUSING;
-	w->button = gf3d_create_button(vector2d(432, 572), "images/button.png", -1, -1, 0); // 256, 64
+	w->button = gf3d_create_button(vector2d(832, 472), "images/button.png", -1, -1, 0); // 256, 64
 	gfc_word_cpy(w->name, "Pause");
 
 	return w;
@@ -125,25 +125,4 @@ void gf3d_window_draw(Window *self, Uint32 bufferFrame, VkCommandBuffer commandB
 		return;
 	}
 	slog_sync();
-	gf3d_ui_draw(self->background, bufferFrame, commandBuffer);
-	slog_sync();
-	gf3d_ui_draw(self->button, bufferFrame, commandBuffer);
-	slog_sync();
-}
-
-int pauseSet(int pauseState)
-{
-	if (pauseState == 0)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-int startGame()
-{
-	return 1;
 }

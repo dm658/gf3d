@@ -5,6 +5,7 @@
 #include "gfc_matrix.h"
 #include "gfc_types.h"
 #include "gfc_input.h"
+#include "gfc_audio.h"
 
 #include "gf3d_vgraphics.h"
 #include "gf3d_pipeline.h"
@@ -26,7 +27,8 @@ typedef enum
 	PLAY,
 	START,
 	PAUSE,
-	EDIT
+	EDIT,
+	WAITING
 }GAME_STATE;
 // remember to use simple_json.h
 int main(int argc,char *argv[])
@@ -35,8 +37,6 @@ int main(int argc,char *argv[])
     int a;
     Uint8 validate = 1;
 	GAME_STATE state;
-	int pause = 1;
-	int start = 0;
 	float frame = 0;
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
@@ -47,6 +47,7 @@ int main(int argc,char *argv[])
 	Entity *player1, *enemy, *armor, *health, *support, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
 	UI *mouse, *hud, *button;
 	Window *mainWindow, *pauseWindow, *editWindow;
+	Sound *mainTrack, *titleTrack;
 	int mouseX, mouseY;
 	Uint32 mouseFrame = 0;
     
@@ -79,9 +80,13 @@ int main(int argc,char *argv[])
 	slog("Windows initiated.");
 	gfc_input_init("");
 	slog("Inputs initialized.");
+	gfc_audio_init(8, 1, 1, 8, 1, 1);
     
     // main game loop
     slog("gf3d main loop begin");
+
+	// audio load
+	mainTrack =  gfc_sound_load("audio/spaceship.wav", 0.5, -1);
 
 	// sprite loads
 	SDL_GetMouseState(&mouseX, &mouseY);
@@ -118,7 +123,10 @@ int main(int argc,char *argv[])
 	slog("Skybox collider radius: %f", skyboxOne->collider.radius);
 
 	slog("Game about to start.");
-	state = PLAY;
+	state = START;
+
+	gfc_sound_play(mainTrack, -1, 0.5, -1, -1);
+
 	while (!done)
 	{
 		SDL_PumpEvents();   // update SDL's internal event structures
@@ -190,14 +198,10 @@ int main(int argc,char *argv[])
 		if (state == START)
 		{
 			mainWindow = gf3d_main_create();
-			gf3d_window_draw(mainWindow, bufferFrame, commandBuffer);
+			//gf3d_window_draw(mainWindow, bufferFrame, commandBuffer);
 			slog("Game is starting.");
 			slog_sync();
-			if (gfc_input_key_pressed(" "))
-			{
-				gf3d_window_free(mainWindow);
-				state = PLAY;
-			}
+			state = WAITING;
 		}
 
 		if (state == PLAY)
@@ -244,6 +248,12 @@ int main(int argc,char *argv[])
 				slog("Game resume");
 				gf3d_window_free(pauseWindow);
 			}
+		}
+
+		if (keys[SDL_SCANCODE_SPACE])
+		{
+			gf3d_window_free(mainWindow);
+			state = PLAY;
 		}
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
