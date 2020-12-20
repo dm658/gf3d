@@ -14,6 +14,14 @@ typedef struct
 	float w, h;
 }Box2D;
 
+typedef enum
+{
+	GO_TO_GAME,
+	GO_TO_EDIT,
+	GO_TO_PAUSE,
+	GO_TO_MAIN,
+}ButtonType;
+
 typedef struct UI_S
 {
 	Uint8		_inuse; /**flag to make sure entities are not re-assigned while active*/

@@ -11,8 +11,32 @@ typedef enum
 	PLAYER_KNIGHT
 }PlayerClass;
 
+typedef struct
+{
+	char *modelName;
+	int active;
+	int health;
+	float speed;
+	int damagePrimary;
+	int damageSecondary;
+	int reloadTime;
+	int user_last_click;
+	char *primaryFire;
+	char *secondaryFire;
+	int KO_Count;
+	int jackProficiency;
+	int tankProficiency;
+	int thiefProficiency;
+	int currentProficiency;
+	int special;
+	ProjectileType primaryType;
+	ProjectileType secondaryType;
+	PlayerClass playerClass;
+}PlayerData;
+
 void player_think(Entity *self);
 void player_die(Entity *self);
 Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playerClass);
+void proficiency_system(Entity *self);
 
 #endif

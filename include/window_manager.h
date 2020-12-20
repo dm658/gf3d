@@ -15,6 +15,7 @@ typedef struct
 	Uint32		_active;
 	UI			*background;
 	UI			*button;
+	UI			*buttonEdit;
 	WindowType	type;
 	TextWord	name;
 	void(*think)(struct Window_Manager *self);

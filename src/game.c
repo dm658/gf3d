@@ -30,7 +30,7 @@ typedef enum
 	EDIT,
 	WAITING
 }GAME_STATE;
-// remember to use simple_json.h
+
 int main(int argc,char *argv[])
 {
     int done = 0;
@@ -207,25 +207,53 @@ int main(int argc,char *argv[])
 		if (state == PLAY)
 		{
 			playerCurrent = player1->position;
+			PlayerData *pd = (PlayerData *)player1->data;
 			if (keys[SDL_SCANCODE_1])
 			{
 				slog("JACK pressed.");
+				int tempJack = pd->jackProficiency;
+				int tempTank = pd->tankProficiency;
+				int tempThief = pd->thiefProficiency;
+				int special = pd->special;
 				player_die(player1);
 				player1 = player_spawn(playerCurrent, "baseship", PLAYER_JACK);
+				PlayerData *new_pd = (PlayerData *)player1->data;
+				new_pd->jackProficiency = tempJack;
+				new_pd->tankProficiency = tempTank;
+				new_pd->thiefProficiency = tempThief;
+				new_pd->special = special;
 				slog("Jack-of-All is ready.");
 			}
 			if (keys[SDL_SCANCODE_2])
 			{
 				slog("KNIGHT pressed.");
+				int tempJack = pd->jackProficiency;
+				int tempTank = pd->tankProficiency;
+				int tempThief = pd->thiefProficiency;
+				int special = pd->special;
 				player_die(player1);
 				player1 = player_spawn(playerCurrent, "baseship", PLAYER_KNIGHT);
+				PlayerData *new_pd = (PlayerData *)player1->data;
+				new_pd->jackProficiency = tempJack;
+				new_pd->tankProficiency = tempTank;
+				new_pd->thiefProficiency = tempThief;
+				new_pd->special = special;
 				slog("Knight in arms is ready.");
 			}
 			if (keys[SDL_SCANCODE_3])
 			{
 				slog("ROGUE pressed.");
+				int tempJack = pd->jackProficiency;
+				int tempTank = pd->tankProficiency;
+				int tempThief = pd->thiefProficiency;
+				int special = pd->special;
 				player_die(player1);
 				player1 = player_spawn(playerCurrent, "baseship", PLAYER_ROGUE);
+				PlayerData *new_pd = (PlayerData *)player1->data;
+				new_pd->jackProficiency = tempJack;
+				new_pd->tankProficiency = tempTank;
+				new_pd->thiefProficiency = tempThief;
+				new_pd->special = special;
 				slog("Thief in the night is ready.");
 			}
 		}
@@ -249,11 +277,13 @@ int main(int argc,char *argv[])
 				gf3d_window_free(pauseWindow);
 			}
 		}
-
-		if (keys[SDL_SCANCODE_SPACE])
+		if (state == WAITING)
 		{
-			gf3d_window_free(mainWindow);
-			state = PLAY;
+			if (keys[SDL_SCANCODE_SPACE])
+			{
+				gf3d_window_free(mainWindow);
+				state = PLAY;
+			}
 		}
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition

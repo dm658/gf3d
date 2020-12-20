@@ -107,7 +107,7 @@ Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType ty
 	int mouseX, mouseY;
 	SDL_GetMouseState(&mouseX, &mouseY);
 
-	pd->destination = vector3d(700 - mouseX, -250, 400 - mouseY);
+	pd->destination = vector3d(700 - mouseX, -280, 400 - mouseY);
 	ent->data = (void*)pd;
 	ent->model = gf3d_model_load(modelName);
 	ent->model->frameCount = 1;

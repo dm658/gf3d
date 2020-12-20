@@ -2,27 +2,6 @@
 
 #include "player.h"
 
-
-typedef struct
-{
-	char *modelName;
-	int active;
-	int health;
-	float speed;
-	int damagePrimary;
-	int damageSecondary;
-	int reloadTime;
-	int user_last_click;
-	char *primaryFire;
-	char *secondaryFire;
-	int jackProficency;
-	int tankProficency;
-	int thiefProficency;
-	int special;
-	ProjectileType primaryType;
-	ProjectileType secondaryType;
-}PlayerData;
-
 void player_die(Entity *self)
 {
 	PlayerData *pd;
@@ -78,15 +57,16 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 	switch (playerClass)
 	{
 		case PLAYER_JACK:
+			pd->playerClass = playerClass;
 			ent->model = gf3d_model_load("baseship");
 			ent->model->frameCount = 1;
 			pd->reloadTime = 250;
 			pd->health = 6;
 			ent->health = pd->health;
 			pd->speed = 0.5;
-			pd->damagePrimary = 2;
+			pd->damagePrimary = 2 + pd->currentProficiency;
 			ent->damage = pd->damagePrimary;
-			pd->damageSecondary = 3;
+			pd->damageSecondary = 3 + pd->currentProficiency;
 			ent->collider.radius = 0.5f;
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "singlebullet";
@@ -95,13 +75,14 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 
 			break;
 		case PLAYER_KNIGHT:
+			pd->playerClass = playerClass;
 			ent->model = gf3d_model_load("tankship");
 			ent->model->frameCount = 1;
 			pd->reloadTime = 500;
 			pd->health = 12;
 			ent->health = pd->health;
 			pd->speed = 0.1;
-			pd->damagePrimary = 4;
+			pd->damagePrimary = 4 + pd->currentProficiency;
 			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 0;
 			ent->collider.radius = 1.0f;
@@ -112,15 +93,16 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 
 			break;
 		case PLAYER_ROGUE:
+			pd->playerClass = playerClass;
 			ent->model = gf3d_model_load("sharpship");
 			ent->model->frameCount = 1;
 			pd->reloadTime = 100;
 			pd->health = 3;
 			ent->health = pd->health;
 			pd->speed = 0.9;
-			pd->damagePrimary = 1;
+			pd->damagePrimary = 1 + pd->currentProficiency;
 			ent->damage = pd->damagePrimary;
-			pd->damageSecondary = 3;
+			pd->damageSecondary = 3 + pd->currentProficiency;
 			ent->collider.radius = 0.25f;
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "arrow";
@@ -137,6 +119,7 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 	
 	
 	slog("Player lives.");
+	return_entity_manager()->player = ent;
 	return ent;
 }
 
@@ -193,13 +176,13 @@ void player_think(Entity *self)
 				Entity *primary = projectile_spawn(self->position, pd->primaryFire, PLAYER_PROJECTILE, pd->primaryType);
 				pd->user_last_click = SDL_GetTicks();
 			}
-			if (keys[SDL_SCANCODE_E])
+			if (keys[SDL_SCANCODE_E] && (pd->currentProficiency >= 2))
 			{
 				slog("Projectile fired. %d", SDL_GetTicks());
 				Entity *secondary = projectile_spawn(self->position, pd->secondaryFire, PLAYER_PROJECTILE, pd->secondaryType);
 				pd->user_last_click = SDL_GetTicks();
 			}
-			if (keys[SDL_SCANCODE_Q] && pd->special > 0)
+			if (keys[SDL_SCANCODE_Q] && (pd->special > 0) && (pd->currentProficiency >= 3))
 			{
 				pd->user_last_click = SDL_GetTicks();
 				self->maxFrame = 100;
@@ -212,7 +195,7 @@ void player_think(Entity *self)
 		}	
 	}
 
-	if ((pd->user_last_click + 4200 < SDL_GetTicks()) && (pd->active == 0))
+	if ((pd->user_last_click + 4100 < SDL_GetTicks()) && (pd->active == 0))
 	{
 		self->maxFrame = 1;
 		self->model = gf3d_model_load("baseship");
@@ -225,13 +208,65 @@ void player_think(Entity *self)
 
 	vector3d_copy(self->collider.origin, self->position);
 	vector3d_copy(self->absorbCollider.origin, self->position);
+	proficiency_system(self);
+	pd->damagePrimary = pd->damagePrimary + pd->currentProficiency;
+	if (pd->playerClass != PLAYER_KNIGHT) { pd->damageSecondary = pd->damageSecondary + pd->currentProficiency; }
 }
 
 void proficiency_system(Entity *self)
 {
 	PlayerData *pd = (PlayerData *)self->data;
-
-
+	switch (pd->playerClass)
+	{
+		case PLAYER_JACK:
+			if (pd->KO_Count == 10)
+			{
+				++pd->jackProficiency;
+			}
+			if (pd->KO_Count == 20)
+			{
+				++pd->jackProficiency;
+			}
+			if (pd->KO_Count == 30)
+			{
+				++pd->jackProficiency;
+			}
+			pd->currentProficiency = pd->jackProficiency;
+			break;
+		case PLAYER_KNIGHT:
+			if (pd->KO_Count == 10)
+			{
+				++pd->tankProficiency;
+			}
+			if (pd->KO_Count == 20)
+			{
+				++pd->tankProficiency;
+			}
+			if (pd->KO_Count == 30)
+			{
+				++pd->tankProficiency;
+			}
+			pd->currentProficiency = pd->tankProficiency;
+			break;
+		case PLAYER_ROGUE:
+			if (pd->KO_Count == 10)
+			{
+				++pd->thiefProficiency;
+			}
+			if (pd->KO_Count == 20)
+			{
+				++pd->thiefProficiency;
+			}
+			if (pd->KO_Count == 30)
+			{
+				++pd->thiefProficiency;
+			}
+			pd->currentProficiency = pd->thiefProficiency;
+			break;
+		default:
+			slog("No player proficency updated.");
+			break;
+	}
 }
 
 void get_hit()

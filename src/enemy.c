@@ -88,7 +88,7 @@ void enemy_spawner(int number, const char *modelName)
 	{
 		rangeMinX = gfc_random() * -20.0f;
 		rangeMaxX = gfc_random() * 40.0f;
-		rangeMinY = gfc_random() * -300.0f;
+		rangeMinY = gfc_random() * -220.0f;
 		rangeMaxY = gfc_random() * -60.0f;
 		rangeMinZ = gfc_random() * -10.0f;
 		rangeMaxZ = gfc_random() * 10.0f;

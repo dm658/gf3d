@@ -4,6 +4,16 @@
 #include "gf3d_entity.h"
 #include "projectile.h"
 
+typedef enum
+{
+	CHASE,
+	RAGE,
+	ASTEROID,
+	RING,
+	JEFF,
+	BOSS
+}EnemyType;
+
 typedef struct
 {
 	char *modelName;
@@ -20,3 +30,16 @@ Entity *enemy_spawn(Vector3D position, const char *modelName);
 void enemy_spawner(int number, const char *modelName);
 
 #endif
+
+/*
+void load_explosion(const char *filename, Entity enemy)
+{
+	int x, z;
+	x = 0;
+	z = 1;
+	for (int i = 0; i < 8; i++)
+	{
+		Entity *particle = particle_spawn(vector3d(x, enemy->position.y, rangeMinZ + rangeMaxZ), filename);
+	}
+}
+*/

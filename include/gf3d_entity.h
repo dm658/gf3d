@@ -67,6 +67,13 @@ typedef struct Entity_S
 
 }Entity;
 
+typedef struct{
+	Entity  *entity_list;
+	Uint32  entity_count;	/**upper limit for concurrent active entities*/
+	Entity  *player;
+
+}EntityManager;
+
 /**
  * @brief initalizes the internal structures for managing the entity system
  * @param maxEntities this will be the maximum number of concurrent entities
@@ -79,6 +86,8 @@ void gf3d_entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandB
 
 void gf3d_entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
+int get_health(Entity *e1, Entity *e2);
+
 void entity_collision_check_all(Entity *self);
 
 void gf3d_entity_think_all();
@@ -88,5 +97,7 @@ void gf3d_entity_free(Entity *entity);
 Entity *get_destructable_object(Entity *e1, Entity *e2);
 
 Vector3D get_pickup_tracking(Entity *e1, Entity *e2, float trackingSpeed);
+
+EntityManager *return_entity_manager();
 
 #endif
