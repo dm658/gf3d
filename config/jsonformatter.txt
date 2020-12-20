@@ -1,0 +1,14 @@
+﻿{
+  "sequence": {
+    "enemy": [
+      {
+        "health": 3,
+        "name": "chase",
+        "position-x": 0,
+        "position-y": 0,
+        "position-z": 0,
+        "time": 5000
+      }
+    ]
+  }
+}

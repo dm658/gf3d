@@ -57,9 +57,11 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 		return NULL;
 	}
 	pd->user_last_click = 0;
+	pd->active = 1;
 	ent->data = (void*)pd;
 	ent->model = gf3d_model_load(modelName);
 	ent->model->frameCount = 1;
+	ent->maxFrame = 1;
 	vector3d_copy(ent->position, position);
 	slog("Player Position: %.2f, %.2f, %.2f", position.x, position.y, position.z);
 	ent->think = player_think;
@@ -141,70 +143,85 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 void player_think(Entity *self)
 {
 	PlayerData *pd = (PlayerData *)self->data;
-	
+
 	const Uint8 *keys;
 	keys = SDL_GetKeyboardState(NULL);
-	if (keys[SDL_SCANCODE_S])
-	{
-		self->position.z -= pd->speed;
-		if (self->position.z <= -12.0)
-		{
-			self->position.z = -12.0;
-		}
-	}
-	if (keys[SDL_SCANCODE_W])
-	{
-		self->position.z += pd->speed;
-		if (self->position.z >= 16.0)
-		{
-			self->position.z = 16.0;
-		}
-	}
-	if (keys[SDL_SCANCODE_D])
-	{
-		self->position.x -= pd->speed;
-		if (self->position.x <= -36.0)
-		{
-			self->position.x = -36.0;
-		}
-	}
-	if (keys[SDL_SCANCODE_A])
-	{
-		self->position.x += pd->speed;
-		if (self->position.x >= 36.0)
-		{
-			self->position.x = 36.0;
-		}
-	}
-	self->collider.origin = self->position;
 
-	//slog("Before Shoot.");
-	if (pd->user_last_click + pd->reloadTime < SDL_GetTicks())
+	if (pd->active == 1)
 	{
-		//slog("If Statement passed, reload time ready.");
-		if (SDL_GetMouseState(NULL, NULL) && SDL_BUTTON(SDL_BUTTON_LEFT))
+		if (keys[SDL_SCANCODE_S])
 		{
-			slog("Projectile fired. %d", SDL_GetTicks());
-			Entity *primary = projectile_spawn(self->position, pd->primaryFire, PLAYER_PROJECTILE, pd->primaryType);
-			pd->user_last_click = SDL_GetTicks();
+			self->position.z -= pd->speed;
+			if (self->position.z <= -12.0)
+			{
+				self->position.z = -12.0;
+			}
 		}
-		if (keys[SDL_SCANCODE_E])
+		if (keys[SDL_SCANCODE_W])
 		{
-			slog("Projectile fired. %d", SDL_GetTicks());
-			Entity *secondary = projectile_spawn(self->position, pd->secondaryFire, PLAYER_PROJECTILE, pd->secondaryType);
-			pd->user_last_click = SDL_GetTicks();
+			self->position.z += pd->speed;
+			if (self->position.z >= 16.0)
+			{
+				self->position.z = 16.0;
+			}
 		}
-		if (keys[SDL_SCANCODE_Q])
+		if (keys[SDL_SCANCODE_D])
 		{
-			player_die(self);
-			self->model = gf3d_model_load_animated("baseship_anim", 1, 100);
-			self->model->frameCount = 100;
-			slog("Baseship special attack loaded.");
-			_sleep(4200);
-			self->model = gf3d_model_load("baseship");
-			self->model->frameCount = 1;
+			self->position.x -= pd->speed;
+			if (self->position.x <= -36.0)
+			{
+				self->position.x = -36.0;
+			}
 		}
+		if (keys[SDL_SCANCODE_A])
+		{
+			self->position.x += pd->speed;
+			if (self->position.x >= 36.0)
+			{
+				self->position.x = 36.0;
+			}
+		}
+		self->collider.origin = self->position;
+
+		//slog("Before Shoot.");
+		if (pd->user_last_click + pd->reloadTime < SDL_GetTicks())
+		{
+			//slog("If Statement passed, reload time ready.");
+			if (SDL_GetMouseState(NULL, NULL) && SDL_BUTTON(SDL_BUTTON_LEFT))
+			{
+				slog("Projectile fired. %d", SDL_GetTicks());
+				Entity *primary = projectile_spawn(self->position, pd->primaryFire, PLAYER_PROJECTILE, pd->primaryType);
+				pd->user_last_click = SDL_GetTicks();
+			}
+			if (keys[SDL_SCANCODE_E])
+			{
+				slog("Projectile fired. %d", SDL_GetTicks());
+				Entity *secondary = projectile_spawn(self->position, pd->secondaryFire, PLAYER_PROJECTILE, pd->secondaryType);
+				pd->user_last_click = SDL_GetTicks();
+			}
+			if (keys[SDL_SCANCODE_Q] && pd->special > 0)
+			{
+				pd->user_last_click = SDL_GetTicks();
+				self->maxFrame = 100;
+				self->model = gf3d_model_load_animated("baseship_anim", 1, 100);
+				self->model->frameCount = 100;
+				slog("Baseship special attack loaded.");
+				slog_sync();
+				pd->active = 0;
+			}
+		}	
 	}
+
+	if ((pd->user_last_click + 4200 < SDL_GetTicks()) && (pd->active == 0))
+	{
+		self->maxFrame = 1;
+		self->model = gf3d_model_load("baseship");
+		self->model->frameCount = 1;
+		pd->active = 1;
+		pd->special = pd->special - 1;
+	}
+
+	slog("Current Frame: %d", self->currentFrame);
 
 	vector3d_copy(self->collider.origin, self->position);
 	vector3d_copy(self->absorbCollider.origin, self->position);

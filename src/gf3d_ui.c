@@ -102,6 +102,7 @@ UI *gf3d_ui_create(Vector2D position, const char *spriteName, int frame_width, i
 		return NULL;
 	}
 	ui->sprite = gf3d_sprite_load(spriteName, frame_width, frame_height, frames_per_line);
+	ui->scale = vector2d(1, 1);
 	vector2d_copy(ui->position, position);
 	ui->interactable = false;
 	gfc_word_cpy(ui->name, "UI");
@@ -123,6 +124,7 @@ UI *gf3d_create_reticle(Vector2D position, const char *spriteName, int frame_wid
 		return NULL;
 	}
 	ui->sprite = gf3d_sprite_load(spriteName, frame_width, frame_height, frames_per_line);
+	ui->scale = vector2d(1, 1);
 	vector2d_copy(ui->position, position);
 	ui->think = reticle_think;
 	ui->interactable = false;
@@ -146,6 +148,7 @@ UI *gf3d_create_button(Vector2D position, const char *spriteName, int frame_widt
 		return NULL;
 	}
 	ui->sprite = gf3d_sprite_load(spriteName, frame_width, frame_height, frames_per_line);
+	ui->scale = vector2d(1, 1);
 	vector2d_copy(ui->position, position);
 	ui->think = button_think;
 	ui->interactable = true;

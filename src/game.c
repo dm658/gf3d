@@ -21,11 +21,20 @@
 #include "enemy.h"
 #include "pickup.h"
 
+typedef enum
+{
+	PLAY,
+	START,
+	PAUSE,
+	EDIT
+}GAME_STATE;
+// remember to use simple_json.h
 int main(int argc,char *argv[])
 {
     int done = 0;
     int a;
     Uint8 validate = 1;
+	GAME_STATE state;
 	int pause = 1;
 	int start = 0;
 	float frame = 0;
@@ -108,15 +117,17 @@ int main(int argc,char *argv[])
 	//slog("Health collider radius: %f", health->collider.radius);
 	slog("Skybox collider radius: %f", skyboxOne->collider.radius);
 
-    while(!done)
-    {
-        SDL_PumpEvents();   // update SDL's internal event structures
-        keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
+	slog("Game about to start.");
+	state = PLAY;
+	while (!done)
+	{
+		SDL_PumpEvents();   // update SDL's internal event structures
+		keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
 		SDL_GetMouseState(&mouseX, &mouseY);
 
 		gfc_input_update();
 
-		if (pause != 1)
+		if (state == PLAY)
 		{
 			if (entityLoadBuffer + 10000 < SDL_GetTicks())
 			{
@@ -153,79 +164,83 @@ int main(int argc,char *argv[])
 			gf3d_entity_think_all();
 			gf3d_ui_think_all();
 		}
-        //update game things here
-        
-        //gf3d_vgraphics_rotate_camera(0.001);
-		
+		//update game things here
 
-        // configure render command for graphics command pool
-        bufferFrame = gf3d_vgraphics_render_begin();
+		//gf3d_vgraphics_rotate_camera(0.001);
+
+
+		// configure render command for graphics command pool
+		bufferFrame = gf3d_vgraphics_render_begin();
 		// for each mesh, get a command and configure it from the pool
-			gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_model_pipeline(), bufferFrame);
-			gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_overlay_pipeline(), bufferFrame);
+		gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_model_pipeline(), bufferFrame);
+		gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_overlay_pipeline(), bufferFrame);
 
-            commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_model_pipeline());
-				gf3d_entity_draw_all(bufferFrame, commandBuffer);
-			gf3d_command_rendering_end(commandBuffer);
-			
-			// 2D overlay rendering
-			commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_overlay_pipeline());
-				gf3d_ui_draw_all(bufferFrame, commandBuffer);
-					
-            gf3d_command_rendering_end(commandBuffer);
-            
-        gf3d_vgraphics_render_end(bufferFrame);
+		commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_model_pipeline());
+		gf3d_entity_draw_all(bufferFrame, commandBuffer);
+		gf3d_command_rendering_end(commandBuffer);
 
-		if (start == 0)
+		// 2D overlay rendering
+		commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_overlay_pipeline());
+		gf3d_ui_draw_all(bufferFrame, commandBuffer);
+
+		gf3d_command_rendering_end(commandBuffer);
+
+		gf3d_vgraphics_render_end(bufferFrame);
+
+		if (state == START)
 		{
 			mainWindow = gf3d_main_create();
 			gf3d_window_draw(mainWindow, bufferFrame, commandBuffer);
-			start = 1;
+			slog("Game is starting.");
+			slog_sync();
 			if (gfc_input_key_pressed(" "))
 			{
-				gf3d_window_free(pauseWindow);
-				pause = 0;
+				gf3d_window_free(mainWindow);
+				state = PLAY;
 			}
 		}
 
-		playerCurrent = player1->position;
-		if (keys[SDL_SCANCODE_1])
+		if (state == PLAY)
 		{
-			slog("JACK pressed.");
-			player_die(player1);
-			player1 = player_spawn(playerCurrent, "baseship", PLAYER_JACK);
-			slog("Jack-of-All is ready.");
-		}
-		if (keys[SDL_SCANCODE_2])
-		{
-			slog("KNIGHT pressed.");
-			player_die(player1);
-			player1 = player_spawn(playerCurrent, "baseship", PLAYER_KNIGHT);
-			slog("Knight in arms is ready.");
-		}
-		if (keys[SDL_SCANCODE_3])
-		{
-			slog("ROGUE pressed.");
-			player_die(player1);
-			player1 = player_spawn(playerCurrent, "baseship", PLAYER_ROGUE);
-			slog("Thief in the night is ready.");
+			playerCurrent = player1->position;
+			if (keys[SDL_SCANCODE_1])
+			{
+				slog("JACK pressed.");
+				player_die(player1);
+				player1 = player_spawn(playerCurrent, "baseship", PLAYER_JACK);
+				slog("Jack-of-All is ready.");
+			}
+			if (keys[SDL_SCANCODE_2])
+			{
+				slog("KNIGHT pressed.");
+				player_die(player1);
+				player1 = player_spawn(playerCurrent, "baseship", PLAYER_KNIGHT);
+				slog("Knight in arms is ready.");
+			}
+			if (keys[SDL_SCANCODE_3])
+			{
+				slog("ROGUE pressed.");
+				player_die(player1);
+				player1 = player_spawn(playerCurrent, "baseship", PLAYER_ROGUE);
+				slog("Thief in the night is ready.");
+			}
 		}
 
-		if (pause == 0)
+		if (state == PLAY)
 		{
 			if (gfc_input_key_pressed("TAB"))
 			{
-				pause = pauseSet(pause);
+				state == PAUSE;
 				slog("Game is paused");
 				pauseWindow = gf3d_pause_create();
 				gf3d_window_draw(pauseWindow, bufferFrame, commandBuffer);
 			}
 		}
-		if (pause == 1)
+		if (state == PAUSE)
 		{
 			if (gfc_input_key_pressed("TAB"))
 			{
-				pause = pauseSet(pause);
+				state == PLAY;
 				slog("Game resume");
 				gf3d_window_free(pauseWindow);
 			}

@@ -47,6 +47,8 @@ typedef struct Entity_S
 	Vector3D	scale;
 	Sphere		collider;
 	Sphere		absorbCollider;
+	Uint32		currentFrame;
+	Uint32		maxFrame;
 	Model		*model;
 	struct Entity_S *owner;
 	Matrix4		modelMatrix;

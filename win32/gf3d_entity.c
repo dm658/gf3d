@@ -99,7 +99,9 @@ void gf3d_entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandB
 {
 	if (!self) return;
 	gfc_matrix_make_translation(self->modelMatrix, self->position);
-	gf3d_model_draw(self->model, bufferFrame, commandBuffer, self->modelMatrix, 0);
+	self->currentFrame = self->currentFrame + 1;
+	if (self->currentFrame >= self->maxFrame) self->currentFrame = 0;
+	gf3d_model_draw(self->model, bufferFrame, commandBuffer, self->modelMatrix, self->currentFrame);
 }
 
 void gf3d_entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer)

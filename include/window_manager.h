@@ -6,8 +6,8 @@
 typedef enum
 {
 	MAIN,
-	PAUSE,
-	EDIT,
+	PAUSING,
+	EDITOR,
 }WindowType;
 
 typedef struct

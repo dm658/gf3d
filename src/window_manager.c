@@ -95,7 +95,7 @@ Window *gf3d_pause_create()
 		return NULL;
 	}
 	w->background = gf3d_ui_create(vector2d(0, 0), "images/pause_screen.png", -1, -1, 0);
-	w->type = PAUSE;
+	w->type = PAUSING;
 	w->button = gf3d_create_button(vector2d(432, 572), "images/button.png", -1, -1, 0); // 256, 64
 	gfc_word_cpy(w->name, "Pause");
 
@@ -119,9 +119,16 @@ void gf3d_edit_update()
 
 void gf3d_window_draw(Window *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer)
 {
-	if (!self) return;
+	if (!self)
+	{
+		slog("Window not drawn.");
+		return;
+	}
+	slog_sync();
 	gf3d_ui_draw(self->background, bufferFrame, commandBuffer);
+	slog_sync();
 	gf3d_ui_draw(self->button, bufferFrame, commandBuffer);
+	slog_sync();
 }
 
 int pauseSet(int pauseState)
