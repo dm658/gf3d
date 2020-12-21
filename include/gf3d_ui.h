@@ -6,6 +6,7 @@
 #include "gfc_vector.h"
 #include "gfc_matrix.h"
 
+#include "gf3d_entity.h"
 #include "gf3d_sprite.h"
 
 typedef struct
@@ -62,6 +63,8 @@ void gf3d_ui_free(UI *ui);
 
 UI *gf3d_ui_create(Vector2D position, const char *spriteName, int frame_width, int frame_height, Uint32 frames_per_line);
 
+UI *gf3d_create_special(Vector2D position, const char *spriteName, int frame_width, int frame_height, Uint32 frames_per_line);
+
 UI *gf3d_create_reticle(Vector2D position, const char *spriteName, int frame_width, int frame_height, Uint32 frames_per_line);
 
 UI *gf3d_create_button(Vector2D position, const char *spriteName, int frame_width, int frame_height, Uint32 frames_per_line);
@@ -70,7 +73,9 @@ void reticle_think(UI *self);
 
 void button_think(UI *self);
 
-Bool sprite_collide(UI *ui1, UI *ui2);
+void special_think(UI *self);
+
+int sprite_collide(UI *ui1, UI *ui2);
 
 void sprite_collision_check_all(UI *self);
 

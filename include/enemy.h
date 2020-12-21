@@ -3,6 +3,7 @@
 
 #include "gf3d_entity.h"
 #include "projectile.h"
+#include "particle_system.h"
 
 typedef enum
 {
@@ -21,25 +22,18 @@ typedef struct
 	int damage;
 	int reloadTime;
 	int enemy_last_attack;
+	Vector3D destination;
+	Vector3D left;
+	Vector3D right;
 	Entity primaryFire;
+	EnemyType enemyClass;
 }EnemyData;
 
 void enemy_think(Entity *self);
+void boss_think(Entity *self);
 void enemy_die(Entity *self);
-Entity *enemy_spawn(Vector3D position, const char *modelName);
-void enemy_spawner(int number, const char *modelName);
+Entity *enemy_spawn(Vector3D position, const char *modelName, EnemyType type);
+Entity *boss_spawn(Vector3D position, const char *modelName);
+void enemy_spawner(int number, const char *modelName, EnemyType type);
 
 #endif
-
-/*
-void load_explosion(const char *filename, Entity enemy)
-{
-	int x, z;
-	x = 0;
-	z = 1;
-	for (int i = 0; i < 8; i++)
-	{
-		Entity *particle = particle_spawn(vector3d(x, enemy->position.y, rangeMinZ + rangeMaxZ), filename);
-	}
-}
-*/

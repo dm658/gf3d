@@ -2,6 +2,7 @@
 
 #include "gfc_vector.h"
 #include "gf3d_ui.h"
+#include "player.h"
 
 typedef struct{
 	UI  *ui_list;
@@ -115,6 +116,31 @@ UI *gf3d_ui_create(Vector2D position, const char *spriteName, int frame_width, i
 	return ui;
 }
 
+UI *gf3d_create_special(Vector2D position, const char *spriteName, int frame_width, int frame_height, Uint32 frames_per_line)
+{
+	UI *ui;
+	ui = gf3d_ui_new();
+	if (!ui)
+	{
+		slog("Failed to spawn special orb.");
+		slog_sync();
+		return NULL;
+	}
+	ui->sprite = gf3d_sprite_load(spriteName, frame_width, frame_height, frames_per_line);
+	ui->scale = vector2d(1, 1);
+	vector2d_copy(ui->position, position);
+	ui->think = special_think;
+	ui->interactable = false;
+	ui->cooldown = 250;
+	gfc_word_cpy(ui->name, "Orb");
+	ui->collider.w = ui->sprite->frameWidth;
+	ui->collider.h = ui->sprite->frameHeight;
+	ui->collider.x = position.x;
+	ui->collider.y = position.y;
+
+	return ui;
+}
+
 UI *gf3d_create_reticle(Vector2D position, const char *spriteName, int frame_width, int frame_height, Uint32 frames_per_line)
 {
 	UI *ui;
@@ -202,7 +228,7 @@ void reticle_think(UI *self)
 			for (Uint32 i = 0; i < gf3d_ui.ui_count; i++)
 			{
 				if (&gf3d_ui.ui_list[i] == self) continue;
-				if (sprite_collide(self, &gf3d_ui.ui_list[i]))
+				if (sprite_collide(self, &gf3d_ui.ui_list[i]) == 1)
 				{
 					slog("This %s has been clicked.", gf3d_ui.ui_list[i].name);
 				}
@@ -217,7 +243,33 @@ void reticle_think(UI *self)
 	self->collider.y = mouseY;
 }
 
-Bool sprite_collide(UI *ui1, UI *ui2)
+void special_think(UI *self)
+{
+	Entity *player = return_entity_manager()->player;
+	PlayerData *pd = (PlayerData *)player->data;
+	if (pd->special <= 0)
+	{
+		UI *orb = gf3d_ui_create(vector2d(50, 800), "images/no_special.png", -1, -1, 0);
+		gf3d_ui_free(self);
+	}
+	else
+	{
+		if (pd->playerClass == PLAYER_JACK) {
+			UI *orb = gf3d_ui_create(vector2d(0, 0), "images/jack_special.png", -1, -1, 0);
+			gf3d_ui_free(self);
+		}
+		if (pd->playerClass == PLAYER_KNIGHT) {
+			UI *orb = gf3d_ui_create(vector2d(0, 0), "images/knight_special.png", -1, -1, 0);
+			gf3d_ui_free(self);
+		}
+		if (pd->playerClass == PLAYER_ROGUE) {
+			UI *orb = gf3d_ui_create(vector2d(0, 0), "images/rogue_special.png", -1, -1, 0);
+			gf3d_ui_free(self);
+		}
+	}
+}
+
+int sprite_collide(UI *ui1, UI *ui2)
 {
 	if (ui2->interactable)
 	{
@@ -226,10 +278,10 @@ Bool sprite_collide(UI *ui1, UI *ui2)
 			(((ui1->collider.y + ui1->collider.h) < ui2->collider.y)|| 
 			((ui2->collider.y + ui2->collider.h) < ui1->collider.y)))
 		{
-			return true;
+			return 1;
 		}
 	}
-	return false;
+	return 0;
 }
 
 void sprite_collision_check_all(UI *self)

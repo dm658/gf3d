@@ -3,6 +3,7 @@
 
 #include "gf3d_entity.h"
 #include "projectile.h"
+#include "gf3d_ui.h"
 
 typedef enum
 {
@@ -14,6 +15,10 @@ typedef enum
 typedef struct
 {
 	char *modelName;
+	char *modelAnim;
+	char *specialAttack;
+	char *specialOrb;
+	char *no_special;
 	int active;
 	int health;
 	float speed;
@@ -31,7 +36,9 @@ typedef struct
 	int special;
 	ProjectileType primaryType;
 	ProjectileType secondaryType;
+	ProjectileType specialType;
 	PlayerClass playerClass;
+	UI *specialMeter;
 }PlayerData;
 
 void player_think(Entity *self);

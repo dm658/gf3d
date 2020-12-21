@@ -58,56 +58,77 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 	{
 		case PLAYER_JACK:
 			pd->playerClass = playerClass;
+			pd->modelName = "baseship";
 			ent->model = gf3d_model_load("baseship");
 			ent->model->frameCount = 1;
 			pd->reloadTime = 250;
-			pd->health = 6;
+			pd->health = 30;
 			ent->health = pd->health;
 			pd->speed = 0.5;
 			pd->damagePrimary = 2 + pd->currentProficiency;
 			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 3 + pd->currentProficiency;
+			pd->specialType = SUN;
 			ent->collider.radius = 0.5f;
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "singlebullet";
 			pd->secondaryFire = "round";
+			pd->secondaryType = ROUND;
+			pd->modelAnim = "baseship_anim";
+			pd->specialAttack = "sun";
+			pd->specialType = SUN;
 			pd->special = 1;
+			pd->specialOrb = "images/jack_special.png";
 
 			break;
 		case PLAYER_KNIGHT:
 			pd->playerClass = playerClass;
+			pd->modelName = "tankship";
 			ent->model = gf3d_model_load("tankship");
 			ent->model->frameCount = 1;
 			pd->reloadTime = 500;
-			pd->health = 12;
+			pd->health = 50;
 			ent->health = pd->health;
 			pd->speed = 0.1;
 			pd->damagePrimary = 4 + pd->currentProficiency;
 			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 0;
+			pd->specialType = SPIKE;
 			ent->collider.radius = 1.0f;
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "doublebullet";
 			pd->secondaryFire = "shield";
+			pd->secondaryType = SHIELD;
+			pd->modelAnim = "tankship_anim";
+			pd->specialAttack = "spike";
+			pd->specialType = SPIKE;
 			pd->special = 1;
+			pd->specialOrb = "images/knight_special.png";
 
 			break;
 		case PLAYER_ROGUE:
 			pd->playerClass = playerClass;
+			pd->modelName = "sharpship";
 			ent->model = gf3d_model_load("sharpship");
 			ent->model->frameCount = 1;
 			pd->reloadTime = 100;
-			pd->health = 3;
+			pd->health = 20;
 			ent->health = pd->health;
 			pd->speed = 0.9;
 			pd->damagePrimary = 1 + pd->currentProficiency;
 			ent->damage = pd->damagePrimary;
 			pd->damageSecondary = 3 + pd->currentProficiency;
+			pd->specialType = MIRAGE;
 			ent->collider.radius = 0.25f;
 			ent->absorbCollider.radius = 2.0f;
 			pd->primaryFire = "arrow";
 			pd->secondaryFire = "impact";
+			pd->secondaryType = IMPACT;
+			pd->modelAnim = "sharpship_anim";
+			pd->specialAttack = "mirage";
+			pd->specialType = MIRAGE;
 			pd->special = 1;
+			pd->specialOrb = "images/rogue_special.png";
 
 			break;
 		default:
@@ -116,7 +137,6 @@ Entity *player_spawn(Vector3D position, const char *modelName, PlayerClass playe
 			slog("No player class loaded.");
 			break;
 	}
-	
 	
 	slog("Player lives.");
 	return_entity_manager()->player = ent;
@@ -166,10 +186,8 @@ void player_think(Entity *self)
 		}
 		self->collider.origin = self->position;
 
-		//slog("Before Shoot.");
 		if (pd->user_last_click + pd->reloadTime < SDL_GetTicks())
 		{
-			//slog("If Statement passed, reload time ready.");
 			if (SDL_GetMouseState(NULL, NULL) && SDL_BUTTON(SDL_BUTTON_LEFT))
 			{
 				slog("Projectile fired. %d", SDL_GetTicks());
@@ -185,8 +203,9 @@ void player_think(Entity *self)
 			if (keys[SDL_SCANCODE_Q] && (pd->special > 0) && (pd->currentProficiency >= 3))
 			{
 				pd->user_last_click = SDL_GetTicks();
+				self->collider.radius = 0.0f;
 				self->maxFrame = 100;
-				self->model = gf3d_model_load_animated("baseship_anim", 1, 100);
+				self->model = gf3d_model_load_animated(pd->modelAnim, 1, 100);
 				self->model->frameCount = 100;
 				slog("Baseship special attack loaded.");
 				slog_sync();
@@ -197,14 +216,14 @@ void player_think(Entity *self)
 
 	if ((pd->user_last_click + 4100 < SDL_GetTicks()) && (pd->active == 0))
 	{
+		Entity *blast = projectile_spawn(self->position, pd->specialAttack, PLAYER_PROJECTILE, pd->specialType);
+		self->collider.radius = 0.0f;
 		self->maxFrame = 1;
-		self->model = gf3d_model_load("baseship");
+		self->model = gf3d_model_load(pd->modelName);
 		self->model->frameCount = 1;
 		pd->active = 1;
 		pd->special = pd->special - 1;
 	}
-
-	slog("Current Frame: %d", self->currentFrame);
 
 	vector3d_copy(self->collider.origin, self->position);
 	vector3d_copy(self->absorbCollider.origin, self->position);
@@ -230,6 +249,11 @@ void proficiency_system(Entity *self)
 			if (pd->KO_Count == 30)
 			{
 				++pd->jackProficiency;
+				++pd->special;
+			}
+			if ((pd->KO_Count > 30) && (pd->KO_Count % 10 == 0))
+			{
+				++pd->special;
 			}
 			pd->currentProficiency = pd->jackProficiency;
 			break;
@@ -245,6 +269,11 @@ void proficiency_system(Entity *self)
 			if (pd->KO_Count == 30)
 			{
 				++pd->tankProficiency;
+				++pd->special;
+			}
+			if ((pd->KO_Count > 30) && (pd->KO_Count % 10 == 0))
+			{
+				++pd->special;
 			}
 			pd->currentProficiency = pd->tankProficiency;
 			break;
@@ -260,6 +289,11 @@ void proficiency_system(Entity *self)
 			if (pd->KO_Count == 30)
 			{
 				++pd->thiefProficiency;
+				++pd->special;
+			}
+			if ((pd->KO_Count > 30) && (pd->KO_Count % 10 == 0))
+			{
+				++pd->special;
 			}
 			pd->currentProficiency = pd->thiefProficiency;
 			break;

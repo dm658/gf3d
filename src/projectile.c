@@ -109,8 +109,6 @@ Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType ty
 
 	pd->destination = vector3d(700 - mouseX, -280, 400 - mouseY);
 	ent->data = (void*)pd;
-	ent->model = gf3d_model_load(modelName);
-	ent->model->frameCount = 1;
 	vector3d_copy(ent->position, position);
 	ent->think = projectile_think;
 	ent->free = projectile_die;
@@ -122,41 +120,95 @@ Entity *projectile_spawn(Vector3D position, const char *modelName, EntityType ty
 	switch (projType)
 	{
 		case SINGLE:
+			ent->model = gf3d_model_load(modelName);
+			ent->model->frameCount = 1;
+			ent->maxFrame = ent->model->frameCount;
 			pd->health = 1;
 			pd->velocity = 6.0;
 			pd->damage = 2;
 			ent->collider.radius = 5.0f;
 			break;
 		case DOUBLE:
+			ent->model = gf3d_model_load(modelName);
+			ent->model->frameCount = 1;
+			ent->maxFrame = ent->model->frameCount;
 			pd->health = 1;
 			pd->velocity = 6.0;
 			pd->damage = 4;
 			ent->collider.radius = 10.0f;
 			break;
 		case ARROW:
+			ent->model = gf3d_model_load(modelName);
+			ent->model->frameCount = 1;
+			ent->maxFrame = ent->model->frameCount;
 			pd->health = 1;
 			pd->velocity = 12.0;
 			pd->damage = 2;
 			ent->collider.radius = 3.0f;
 			break;
 		case ROUND:
+			ent->model = gf3d_model_load(modelName);
+			ent->model->frameCount = 1;
+			ent->maxFrame = ent->model->frameCount;
 			pd->health = 1;
 			pd->velocity = 3.0;
 			pd->damage = 2;
 			ent->collider.radius = 5.0f;
 			break;
 		case SHIELD:
+			ent->model = gf3d_model_load(modelName);
+			ent->model->frameCount = 1;
+			ent->maxFrame = ent->model->frameCount;
 			pd->health = 5;
 			pd->velocity = 6.0;
 			pd->damage = 0;
 			ent->collider.radius = 10.0f;
 			break;
 		case IMPACT:
+			ent->model = gf3d_model_load(modelName);
+			ent->model->frameCount = 1;
+			ent->maxFrame = ent->model->frameCount;
 			pd->health = 1;
 			pd->velocity = 6.0;
 			pd->damage = 2;
 			ent->collider.radius = 3.0f;
 			break;
+		case SUN:
+			pd->destination = vector3d(0, -280, 0);
+			pd->health = 150;
+			pd->velocity = 1.0;
+			pd->damage = 20;
+			ent->collider.radius = 10.0f;
+			ent->model = gf3d_model_load_animated(modelName, 1, 40);
+			ent->model->frameCount = 40;
+			ent->maxFrame = ent->model->frameCount;
+			break;
+		case SPIKE:
+			pd->destination = vector3d(0, -280, 0);
+			pd->health = 150;
+			pd->velocity = 3.0;
+			pd->damage = 50;
+			ent->collider.radius = 3.0f;
+			ent->model = gf3d_model_load_animated(modelName, 1, 40);
+			ent->model->frameCount = 40;
+			ent->maxFrame = ent->model->frameCount;
+			break;
+		case MIRAGE:
+			pd->destination = vector3d(0, -280, 0);
+			pd->health = 150;
+			pd->velocity = 16.0;
+			pd->damage = 20;
+			ent->collider.radius = 10.0f;
+			ent->model = gf3d_model_load_animated(modelName, 1, 40);
+			ent->model->frameCount = 40;
+			ent->maxFrame = ent->model->frameCount;
+			break;
+		default:
+			slog("Failed to load projectile.");
+			break;
 	}
+	ent->damage = pd->damage;
+	ent->health = pd->health;
+
 	return ent;
 }

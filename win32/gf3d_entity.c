@@ -4,6 +4,7 @@
 #include "gfc_vector.h"
 #include "gf3d_entity.h"
 #include "player.h"
+#include "particle_system.h"
 
 static EntityManager gf3d_entity = { 0 };
 
@@ -159,8 +160,8 @@ Vector3D get_pickup_tracking(Entity *e1, Entity *e2, float trackingSpeed)
 {
 	Entity *pickup;
 	Entity *player;
-	if ((e1->entityType == PLAYER) && (e2->entityType == PICKUP)) { pickup = e2; player = e1; }
-	if ((e2->entityType == PLAYER) && (e1->entityType == PICKUP)) { pickup = e1; player = e2; }
+	if ((e1->entityType == PLAYER) && ((e2->entityType == PICKUP))) { pickup = e2; player = e1; }
+	if ((e2->entityType == PLAYER) && ((e1->entityType == PICKUP))) { pickup = e1; player = e2; }
 
 	if (pickup->position.x > player->position.x)
 	{
@@ -311,6 +312,7 @@ void entity_collide(Entity *e1, Entity *e2)
 			if (e1->health <= 0)
 			{
 				gf3d_entity_free(e1);
+				gf3d_entity_free(e2);
 				exit(0);
 			}
 			return;
@@ -321,6 +323,7 @@ void entity_collide(Entity *e1, Entity *e2)
 			e2->health -= e1->damage;
 			if (e1->health <= 0)
 			{
+				gf3d_entity_free(e1);
 				gf3d_entity_free(e2);
 				exit(0);
 			}
@@ -331,9 +334,12 @@ void entity_collide(Entity *e1, Entity *e2)
 		{
 			slog("Enemy hit.");
 			e1->health -= e2->damage;
+			gf3d_entity_free(e2);
+			//if ((e2->health < 150) && (e1->health > 100)) { gf3d_entity_free(e2); }
 			if (e1->health <= 0)
 			{
 				gf3d_entity_free(e1);
+				slog("Enemy dies.");
 				PlayerData *pd = (PlayerData*)return_entity_manager()->player->data;
 				if (!pd) { return; }
 				pd->KO_Count = pd->KO_Count + 1;
@@ -344,9 +350,11 @@ void entity_collide(Entity *e1, Entity *e2)
 		{
 			slog("Enemy hit.");
 			e2->health -= e1->damage;
-			if (e1->health <= 0)
+			gf3d_entity_free(e1); 
+			if (e2->health <= 0)
 			{
 				gf3d_entity_free(e2);
+				slog("Enemy dies.");
 				PlayerData *pd = (PlayerData*)return_entity_manager()->player->data;
 				if (!pd) { return; }
 				pd->KO_Count = pd->KO_Count + 1;
@@ -357,8 +365,8 @@ void entity_collide(Entity *e1, Entity *e2)
 
 		slog("Normal collision.");
 		slog("Projectile %s hit ent %s", e1->name, e2->name);
-		gf3d_entity_free(e1);
-		gf3d_entity_free(e2);
+		//gf3d_entity_free(e1);
+		//gf3d_entity_free(e2);
 	}
 }
 

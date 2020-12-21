@@ -42,10 +42,12 @@ int main(int argc,char *argv[])
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
 	int entityLoadBuffer = 0, entityLoadBuffer1 = 0, entityLoadBuffer2 = 0, entityLoadBuffer3 = 0, entityLoadBuffer4 = 0;
+	int bossBuffer = 0;
+	int bossEnter = 0;
 	Model *reference = NULL;
 	Vector3D playerCurrent;
-	Entity *player1, *enemy, *armor, *health, *support, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour;
-	UI *mouse, *hud, *button;
+	Entity *player1, *enemy, *armor, *health, *support, *skyboxOne, *skyboxTwo, *skyboxThree, *skyboxFour, *boss;
+	UI *mouse, *hud, *button, *orb;
 	Window *mainWindow, *pauseWindow, *editWindow;
 	Sound *mainTrack, *titleTrack;
 	int mouseX, mouseY;
@@ -74,9 +76,9 @@ int main(int argc,char *argv[])
 	gf3d_entity_init(8192);
 	gf3d_sprite_manager_init(16, gf3d_swapchain_get_chain_length(), gf3d_vgraphics_get_default_logical_device());
 	slog("Sprites initiated.");
-	gf3d_ui_init(16);
+	gf3d_ui_init(128);
 	slog("UI initiated.");
-	gf3d_window_init(4);
+	gf3d_window_init(16);
 	slog("Windows initiated.");
 	gfc_input_init("");
 	slog("Inputs initialized.");
@@ -91,7 +93,8 @@ int main(int argc,char *argv[])
 	// sprite loads
 	SDL_GetMouseState(&mouseX, &mouseY);
 	hud = gf3d_ui_create(vector2d(0, 0), "images/hud.png", -1, -1, 0);
-	button = gf3d_create_button(vector2d(100, 50), "images/button.png", -1, -1, 0);
+	//button = gf3d_create_button(vector2d(100, 50), "images/button.png", -1, -1, 0);
+	orb = gf3d_ui_create(vector2d(0, 0), "images/no_special.png", -1, -1, 0);
 	mouse = gf3d_create_reticle(vector2d(mouseX - 16, mouseY - 16), "images/reticle.png", -1, -1, 0);
 
 
@@ -103,8 +106,8 @@ int main(int argc,char *argv[])
 		exit(1);
 	}
 
-	enemy_spawner(2, "chase");
-	enemy_spawner(2, "rage");
+	enemy_spawner(2, "chase", CHASE);
+	enemy_spawner(2, "rage", RAGE);
 	
 	health = pickup_spawn(vector3d(20.0, -120.0, 4.0), "armor", PICKUP_ARMOR);
 	armor = pickup_spawn(vector3d(20.0, -240.0, 4.0), "armor", PICKUP_ARMOR);
@@ -139,34 +142,39 @@ int main(int argc,char *argv[])
 		{
 			if (entityLoadBuffer + 10000 < SDL_GetTicks())
 			{
-				enemy_spawner(2, "chase");
-				enemy_spawner(2, "rage");
+				enemy_spawner(2, "chase", CHASE);
+				enemy_spawner(2, "rage", RAGE);
 				pickup_spawner(1, "healthsmall", PICKUP_HEALTH);
 				entityLoadBuffer = SDL_GetTicks();
 			}
 			if (entityLoadBuffer1 + 10000 < SDL_GetTicks())
 			{
-				enemy_spawner(1, "rage");
+				enemy_spawner(1, "rage", RAGE);
 				pickup_spawner(1, "healthmedium", PICKUP_HEALTH);
 				entityLoadBuffer1 = SDL_GetTicks();
 			}
 			if (entityLoadBuffer2 + 6000 < SDL_GetTicks())
 			{
-				enemy_spawner(1, "asteroid");
+				enemy_spawner(1, "asteroid", ASTEROID);
 				pickup_spawner(1, "healthbig", PICKUP_HEALTH);
 				entityLoadBuffer2 = SDL_GetTicks();
 			}
 			if (entityLoadBuffer3 + 18000 < SDL_GetTicks())
 			{
-				enemy_spawner(1, "ring");
+				enemy_spawner(1, "ring", RING);
 				pickup_spawner(1, "armor", PICKUP_ARMOR);
 				entityLoadBuffer3 = SDL_GetTicks();
 			}
 			if (entityLoadBuffer4 + 18000 < SDL_GetTicks())
 			{
-				enemy_spawner(1, "jeff");
+				enemy_spawner(1, "jeff", JEFF);
 				pickup_spawner(1, "miniship", PICKUP_SUPPORT);
 				entityLoadBuffer4 = SDL_GetTicks();
+			}
+			if ((bossBuffer + 30000 < SDL_GetTicks()) && bossEnter == 0)
+			{
+				boss = boss_spawn(vector3d(0, -200, 20), "boss");
+				++bossEnter;
 			}
 
 			gf3d_entity_think_all();
@@ -258,16 +266,19 @@ int main(int argc,char *argv[])
 			}
 		}
 
+		gfc_input_update();
+		/*
 		if (state == PLAY)
 		{
 			if (gfc_input_key_pressed("TAB"))
 			{
-				state == PAUSE;
+				state == WAITING;
 				slog("Game is paused");
 				pauseWindow = gf3d_pause_create();
-				gf3d_window_draw(pauseWindow, bufferFrame, commandBuffer);
+				//gf3d_window_draw(pauseWindow, bufferFrame, commandBuffer);
 			}
 		}
+
 		if (state == PAUSE)
 		{
 			if (gfc_input_key_pressed("TAB"))
@@ -277,13 +288,27 @@ int main(int argc,char *argv[])
 				gf3d_window_free(pauseWindow);
 			}
 		}
+		*/
 		if (state == WAITING)
 		{
-			if (keys[SDL_SCANCODE_SPACE])
+			if (gfc_input_key_pressed(" "))
 			{
-				gf3d_window_free(mainWindow);
+				if (mainWindow)
+				{
+					gf3d_window_free(mainWindow);
+				}
 				state = PLAY;
 			}
+			/*
+			if (gfc_input_key_pressed("TAB"))
+			{
+				if (pauseWindow)
+				{
+					gf3d_window_free(pauseWindow);
+				}
+				state = PLAY;
+			}
+			*/
 		}
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition

@@ -10,7 +10,10 @@ typedef enum
 	ARROW,
 	ROUND,
 	SHIELD,
-	IMPACT
+	IMPACT,
+	SPIKE,
+	SUN,
+	MIRAGE
 }ProjectileType;
 
 void projectile_think(Entity *self);
