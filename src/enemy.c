@@ -121,7 +121,7 @@ Entity *boss_spawn(Vector3D position, const char *modelName)
 	ent->collider.origin = position;
 	ent->free = enemy_die;
 
-	ed->reloadTime = 1500;
+	ed->reloadTime = 2500;
 	ed->damage = 5;
 	ent->damage = ed->damage;
 	ed->health = 120;

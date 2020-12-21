@@ -223,12 +223,10 @@ void entity_collide(Entity *e1, Entity *e2)
 			if (e2->entityType == PLAYER)
 			{
 				e1->position = get_pickup_tracking(e1, e2, 0.2);
-				return;
 			}
 			if (e1->entityType == PLAYER)
 			{
 				e2->position = get_pickup_tracking(e1, e2, 0.2);
-				return;
 			}
 		}
 	}
@@ -270,7 +268,7 @@ void entity_collide(Entity *e1, Entity *e2)
 					e2->health += e1->health;
 					gf3d_entity_free(e1);
 				}
-				if (e2->subType == PICKUP_ARMOR)
+				if (e1->subType == PICKUP_ARMOR)
 				{
 					e2->health += 20;
 					gf3d_entity_free(e1);
